@@ -1,0 +1,85 @@
+import Link from "next/link";
+import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from "lucide-react";
+
+export default function Footer() {
+    return (
+        <footer className="bg-gray-900 text-gray-300">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+                    {/* Brand */}
+                    <div className="col-span-2 md:col-span-1">
+                        <h3 className="text-lg font-bold text-white mb-3">NukkadSeva</h3>
+                        <p className="text-sm text-gray-400 mb-4 leading-relaxed">
+                            Your trusted platform for local home services. Connect with verified professionals.
+                        </p>
+                        <div className="flex space-x-3">
+                            <a href="#" className="p-2 bg-gray-800 rounded-lg hover:bg-primary-500 transition-colors">
+                                <Facebook className="w-4 h-4" />
+                            </a>
+                            <a href="#" className="p-2 bg-gray-800 rounded-lg hover:bg-primary-500 transition-colors">
+                                <Twitter className="w-4 h-4" />
+                            </a>
+                            <a href="#" className="p-2 bg-gray-800 rounded-lg hover:bg-primary-500 transition-colors">
+                                <Instagram className="w-4 h-4" />
+                            </a>
+                            <a href="#" className="p-2 bg-gray-800 rounded-lg hover:bg-primary-500 transition-colors">
+                                <Linkedin className="w-4 h-4" />
+                            </a>
+                        </div>
+                    </div>
+
+                    {/* Quick Links */}
+                    <div>
+                        <h4 className="text-sm font-semibold text-white mb-3">Quick Links</h4>
+                        <ul className="space-y-2">
+                            <li><Link href="/" className="text-sm hover:text-primary-400 transition-colors">Home</Link></li>
+                            <li><Link href="/providers" className="text-sm hover:text-primary-400 transition-colors">Services</Link></li>
+                            <li><Link href="/providers" className="text-sm hover:text-primary-400 transition-colors">Providers</Link></li>
+                            <li><Link href="/login" className="text-sm hover:text-primary-400 transition-colors">Login</Link></li>
+                        </ul>
+                    </div>
+
+                    {/* Services */}
+                    <div>
+                        <h4 className="text-sm font-semibold text-white mb-3">Services</h4>
+                        <ul className="space-y-2">
+                            <li><a href="#" className="text-sm hover:text-primary-400 transition-colors">Plumbing</a></li>
+                            <li><a href="#" className="text-sm hover:text-primary-400 transition-colors">Electrical</a></li>
+                            <li><a href="#" className="text-sm hover:text-primary-400 transition-colors">Painting</a></li>
+                            <li><a href="#" className="text-sm hover:text-primary-400 transition-colors">Cleaning</a></li>
+                        </ul>
+                    </div>
+
+                    {/* Contact */}
+                    <div>
+                        <h4 className="text-sm font-semibold text-white mb-3">Contact</h4>
+                        <ul className="space-y-2">
+                            <li className="flex items-center text-sm">
+                                <Mail className="w-4 h-4 mr-2 text-primary-400" />
+                                support@nukkadseva.com
+                            </li>
+                            <li className="flex items-center text-sm">
+                                <Phone className="w-4 h-4 mr-2 text-primary-400" />
+                                +91 1800-123-4567
+                            </li>
+                            <li className="flex items-start text-sm">
+                                <MapPin className="w-4 h-4 mr-2 mt-0.5 text-primary-400 flex-shrink-0" />
+                                New Delhi, India
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <hr className="my-6 border-gray-800" />
+
+                <div className="flex flex-col md:flex-row items-center justify-between text-xs text-gray-500">
+                    <p>&copy; {new Date().getFullYear()} NukkadSeva. All rights reserved.</p>
+                    <div className="flex space-x-4 mt-3 md:mt-0">
+                        <a href="#" className="hover:text-gray-300">Privacy Policy</a>
+                        <a href="#" className="hover:text-gray-300">Terms of Service</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    );
+}
