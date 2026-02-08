@@ -1,32 +1,118 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
-import { Star, MapPin, Phone, Clock, Shield, ChevronLeft, CheckCircle, MessageCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import api from "@/lib/api";
+import { DashboardProviderDto, BookingRequest, ServiceType, PaymentMethod } from "@/types/backend";
+import { Star, MapPin, Phone, Clock, Shield, ChevronLeft, CheckCircle, MessageCircle, CreditCard } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
-const provider = {
-    id: 1, name: "Rajesh Kumar", service: "Plumbing Expert", rating: 4.8, reviews: 124, experience: "8 years", completedJobs: 450,
-    image: "https://randomuser.me/api/portraits/men/32.jpg", location: "Sector 18, Noida", phone: "+91 9876543210", verified: true,
-    about: "Professional plumber with 8+ years of experience. Specialized in pipe fitting, leak repairs, bathroom installations.",
-    services: [
-        { name: "Pipe Repair", price: 299, duration: "1-2 hrs" },
-        { name: "Leak Detection", price: 199, duration: "30-60 min" },
-        { name: "Bathroom Installation", price: 1499, duration: "4-6 hrs" },
-        { name: "Water Heater Service", price: 499, duration: "1-2 hrs" },
-    ],
-    availability: ["9:00 AM", "10:00 AM", "11:00 AM", "2:00 PM", "3:00 PM", "4:00 PM"],
-    reviewsList: [
-        { id: 1, name: "Ankit Sharma", rating: 5, date: "Feb 1", comment: "Excellent work! Fixed our leak quickly." },
-        { id: 2, name: "Priya Gupta", rating: 4, date: "Jan 28", comment: "Good service. Arrived on time." },
-    ],
-};
-
-export default function ProviderDetailPage() {
-    const [selectedService, setSelectedService] = useState(provider.services[0]);
+export default function ProviderDetailPage({ params }: { params: { id: string } }) {
+    const router = useRouter();
+    const { user } = useAuth();
+    const [provider, setProvider] = useState<DashboardProviderDto | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [selectedService, setSelectedService] = useState<{ name: string, price: number, type: ServiceType } | null>(null);
     const [selectedDate, setSelectedDate] = useState("");
     const [selectedTime, setSelectedTime] = useState("");
+    const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.CASH_AFTER_SERVICE);
+    const [bookingNote, setBookingNote] = useState("");
+    const [isBooking, setIsBooking] = useState(false);
+
+    // Mock services based on category since backend doesn't return detailed services list yet
+    const getServicesForCategory = (category: string) => {
+        const baseServices = [
+            { name: "Consultation / Visitation", price: 199, type: ServiceType.REPAIRS },
+        ];
+
+        switch (category?.toUpperCase()) {
+            case "PLUMBING":
+                return [
+                    ...baseServices,
+                    { name: "Pipe Repair", price: 499, type: ServiceType.PLUMBING },
+                    { name: "Installation", price: 999, type: ServiceType.PLUMBING }
+                ];
+            case "ELECTRICAL":
+                return [
+                    ...baseServices,
+                    { name: "Wiring Check", price: 399, type: ServiceType.ELECTRICAL },
+                    { name: "Switch Installation", price: 150, type: ServiceType.ELECTRICAL }
+                ];
+            case "CLEANING":
+                return [
+                    { name: "Full Home Cleaning", price: 1499, type: ServiceType.CLEANING },
+                    { name: "Kitchen Cleaning", price: 799, type: ServiceType.CLEANING }
+                ];
+            default:
+                return baseServices;
+        }
+    };
+
+    useEffect(() => {
+        fetchProvider();
+    }, [params.id]);
+
+    const fetchProvider = async () => {
+        try {
+            // Workaround: Fetch list and find by ID since public ID endpoint is missing
+            const { data } = await api.get<{ providers: DashboardProviderDto[] }>("/public/providers", {
+                params: { limit: 100 }
+            });
+            const found = data.providers.find((p: DashboardProviderDto) => p.id === Number(params.id));
+            setProvider(found || null);
+            if (found) {
+                const services = getServicesForCategory(found.serviceCategory);
+                setSelectedService(services[0]);
+            }
+        } catch (error) {
+            console.error("Failed to fetch provider", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleBooking = async () => {
+        if (!user) {
+            router.push("/login");
+            return;
+        }
+        if (!provider || !selectedService || !selectedDate || !selectedTime) return;
+
+        setIsBooking(true);
+        try {
+            // Combine date and time
+            const bookingDateTime = `${selectedDate}T${selectedTime}:00`;
+
+            const bookingRequest: BookingRequest = {
+                providerId: provider.id,
+                serviceType: selectedService.type,
+                bookingDateTime: bookingDateTime,
+                priceEstimate: selectedService.price,
+                finalPrice: selectedService.price, // Assuming fixed price for now
+                paymentMethod: paymentMethod,
+                note: bookingNote
+            };
+
+            await api.post("/booking", bookingRequest);
+            alert("Booking created successfully!");
+            router.push("/bookings");
+        } catch (error) {
+            console.error("Booking failed", error);
+            alert("Failed to create booking. Please try again.");
+        } finally {
+            setIsBooking(false);
+        }
+    };
+
+    if (loading) return <div className="p-10 text-center">Loading provider details...</div>;
+    if (!provider) return <div className="p-10 text-center">Provider not found</div>;
+
+    const services = getServicesForCategory(provider.serviceCategory);
+    // Mock availability
+    const availability = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"];
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -45,19 +131,18 @@ export default function ProviderDetailPage() {
                         {/* Header Card */}
                         <div className="bg-white rounded-lg p-4 shadow-sm">
                             <div className="flex items-start gap-4">
-                                <img src={provider.image} alt={provider.name} className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover" />
+                                <img src={provider.profilePicture || "https://randomuser.me/api/portraits/men/1.jpg"} alt={provider.fullName} className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover" />
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <h1 className="text-lg font-bold text-gray-900">{provider.name}</h1>
-                                        {provider.verified && <span className="bg-green-100 text-green-600 text-xs px-2 py-0.5 rounded-full flex items-center"><Shield className="w-3 h-3 mr-1" />Verified</span>}
+                                        <h1 className="text-lg font-bold text-gray-900">{provider.businessName || provider.fullName}</h1>
+                                        <span className="bg-green-100 text-green-600 text-xs px-2 py-0.5 rounded-full flex items-center"><Shield className="w-3 h-3 mr-1" />Verified</span>
                                     </div>
-                                    <p className="text-sm text-gray-600 mb-2">{provider.service}</p>
+                                    <p className="text-sm text-gray-600 mb-2">{provider.serviceCategory}</p>
                                     <div className="flex flex-wrap gap-3 text-xs text-gray-600">
-                                        <span className="flex items-center"><Star className="w-3 h-3 text-yellow-400 fill-yellow-400 mr-1" />{provider.rating} ({provider.reviews})</span>
-                                        <span className="flex items-center"><Clock className="w-3 h-3 mr-1" />{provider.experience}</span>
-                                        <span className="flex items-center"><CheckCircle className="w-3 h-3 mr-1 text-green-500" />{provider.completedJobs} jobs</span>
+                                        <span className="flex items-center"><Star className="w-3 h-3 text-yellow-400 fill-yellow-400 mr-1" />4.8 (120 reviews)</span>
+                                        <span className="flex items-center"><Clock className="w-3 h-3 mr-1" />{provider.experience} Yrs Exp.</span>
                                     </div>
-                                    <p className="flex items-center mt-2 text-xs text-gray-500"><MapPin className="w-3 h-3 mr-1" />{provider.location}</p>
+                                    <p className="flex items-center mt-2 text-xs text-gray-500"><MapPin className="w-3 h-3 mr-1" />{provider.serviceArea}</p>
                                 </div>
                             </div>
                         </div>
@@ -65,45 +150,19 @@ export default function ProviderDetailPage() {
                         {/* About */}
                         <div className="bg-white rounded-lg p-4 shadow-sm">
                             <h2 className="text-sm font-semibold text-gray-900 mb-2">About</h2>
-                            <p className="text-sm text-gray-600">{provider.about}</p>
+                            <p className="text-sm text-gray-600">{provider.bio || "No details available."}</p>
                         </div>
 
                         {/* Services */}
                         <div className="bg-white rounded-lg p-4 shadow-sm">
                             <h2 className="text-sm font-semibold text-gray-900 mb-3">Services</h2>
                             <div className="space-y-2">
-                                {provider.services.map((s) => (
-                                    <div key={s.name} onClick={() => setSelectedService(s)} className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${selectedService.name === s.name ? "border-primary-500 bg-primary-50" : "border-gray-200 hover:bg-gray-50"}`}>
+                                {services.map((s) => (
+                                    <div key={s.name} onClick={() => setSelectedService(s)} className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${selectedService?.name === s.name ? "border-primary-500 bg-primary-50" : "border-gray-200 hover:bg-gray-50"}`}>
                                         <div>
                                             <p className="text-sm font-medium text-gray-900">{s.name}</p>
-                                            <p className="text-xs text-gray-500">{s.duration}</p>
                                         </div>
                                         <p className="text-sm font-semibold text-primary-500">₹{s.price}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Reviews */}
-                        <div className="bg-white rounded-lg p-4 shadow-sm">
-                            <div className="flex items-center justify-between mb-3">
-                                <h2 className="text-sm font-semibold text-gray-900">Reviews</h2>
-                                <span className="flex items-center text-xs"><Star className="w-3 h-3 text-yellow-400 fill-yellow-400 mr-1" />{provider.rating} ({provider.reviews})</span>
-                            </div>
-                            <div className="space-y-3">
-                                {provider.reviewsList.map((r) => (
-                                    <div key={r.id} className="border-b border-gray-100 pb-3 last:border-0 last:pb-0">
-                                        <div className="flex items-center justify-between mb-1">
-                                            <div className="flex items-center">
-                                                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-2 text-xs font-medium text-gray-600">{r.name[0]}</div>
-                                                <div>
-                                                    <p className="text-sm font-medium text-gray-900">{r.name}</p>
-                                                    <p className="text-xs text-gray-500">{r.date}</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex">{[...Array(5)].map((_, i) => <Star key={i} className={`w-3 h-3 ${i < r.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`} />)}</div>
-                                        </div>
-                                        <p className="text-sm text-gray-600">{r.comment}</p>
                                     </div>
                                 ))}
                             </div>
@@ -115,11 +174,13 @@ export default function ProviderDetailPage() {
                         <div className="bg-white rounded-lg p-4 shadow-sm sticky top-16">
                             <h2 className="text-sm font-semibold text-gray-900 mb-3">Book Service</h2>
 
-                            <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                                <p className="text-xs text-gray-500">Selected</p>
-                                <p className="text-sm font-medium text-gray-900">{selectedService.name}</p>
-                                <p className="text-sm font-semibold text-primary-500">₹{selectedService.price}</p>
-                            </div>
+                            {selectedService && (
+                                <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                                    <p className="text-xs text-gray-500">Selected</p>
+                                    <p className="text-sm font-medium text-gray-900">{selectedService.name}</p>
+                                    <p className="text-sm font-semibold text-primary-500">₹{selectedService.price}</p>
+                                </div>
+                            )}
 
                             <div className="mb-4">
                                 <label className="block text-xs font-medium text-gray-700 mb-1">Date</label>
@@ -129,7 +190,7 @@ export default function ProviderDetailPage() {
                             <div className="mb-4">
                                 <label className="block text-xs font-medium text-gray-700 mb-1">Time Slot</label>
                                 <div className="grid grid-cols-3 gap-1.5">
-                                    {provider.availability.map((t) => (
+                                    {availability.map((t) => (
                                         <button key={t} onClick={() => setSelectedTime(t)} className={`py-1.5 rounded text-xs font-medium transition-colors ${selectedTime === t ? "bg-primary-500 text-white" : "border border-gray-300 text-gray-700 hover:bg-gray-50"}`}>
                                             {t}
                                         </button>
@@ -137,16 +198,29 @@ export default function ProviderDetailPage() {
                                 </div>
                             </div>
 
-                            <button disabled={!selectedDate || !selectedTime} className="w-full bg-primary-500 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed">
-                                Confirm Booking
+                            <div className="mb-4">
+                                <label className="block text-xs font-medium text-gray-700 mb-1">Payment Method</label>
+                                <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500">
+                                    <option value={PaymentMethod.CASH_AFTER_SERVICE}>Cash After Service</option>
+                                    <option value={PaymentMethod.UPI}>UPI</option>
+                                    <option value={PaymentMethod.CREDIT_CARD}>Credit Card</option>
+                                    <option value={PaymentMethod.DEBIT_CARD}>Debit Card</option>
+                                    <option value={PaymentMethod.NET_BANKING}>Net Banking</option>
+                                </select>
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-xs font-medium text-gray-700 mb-1">Note (Optional)</label>
+                                <textarea value={bookingNote} onChange={(e) => setBookingNote(e.target.value)} rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500" placeholder="Any specific requirements..."></textarea>
+                            </div>
+
+                            <button onClick={handleBooking} disabled={!selectedDate || !selectedTime || isBooking} className="w-full bg-primary-500 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
+                                {isBooking ? "Booking..." : "Confirm Booking"}
                             </button>
 
                             <div className="mt-4 pt-4 border-t border-gray-200 space-y-2">
-                                <button className="w-full flex items-center justify-center py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
-                                    <MessageCircle className="w-4 h-4 mr-2" />Contact
-                                </button>
-                                <a href={`tel:${provider.phone}`} className="w-full flex items-center justify-center py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
-                                    <Phone className="w-4 h-4 mr-2" />{provider.phone}
+                                <a href={`tel:${provider.mobileNumber}`} className="w-full flex items-center justify-center py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
+                                    <Phone className="w-4 h-4 mr-2" />{provider.mobileNumber}
                                 </a>
                             </div>
                         </div>

@@ -17,12 +17,13 @@ import {
 } from "lucide-react";
 
 const menuItems = [
-    { icon: Home, label: "Dashboard", href: "/dashboard" },
-    { icon: Calendar, label: "Bookings", href: "/bookings" },
-    { icon: CreditCard, label: "Payments", href: "/payments" },
-    { icon: User, label: "Profile", href: "/profile" },
-    { icon: Settings, label: "Settings", href: "/settings" },
+    { icon: Home, label: "Dashboard", href: "/customer/dashboard" },
+    { icon: Calendar, label: "Bookings", href: "/customer/bookings" },
+    { icon: CreditCard, label: "Payments", href: "/customer/payments" },
+    { icon: User, label: "Profile", href: "/customer/profile" },
+    { icon: Settings, label: "Settings", href: "/customer/settings" },
 ];
+
 
 export default function Sidebar() {
     const pathname = usePathname();
@@ -103,8 +104,8 @@ export default function Sidebar() {
                                     href={item.href}
                                     onClick={() => setIsOpen(false)}
                                     className={`flex items-center px-3 py-2 rounded-lg text-sm transition-colors ${isActive
-                                            ? "bg-primary-50 text-primary-600 font-medium"
-                                            : "text-gray-600 hover:bg-gray-100"
+                                        ? "bg-primary-50 text-primary-600 font-medium"
+                                        : "text-gray-600 hover:bg-gray-100"
                                         }`}
                                     title={isCollapsed ? item.label : undefined}
                                 >

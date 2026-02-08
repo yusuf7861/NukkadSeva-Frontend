@@ -1,32 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
+import api from "@/lib/api";
+import { DashboardProviderDto } from "@/types/backend";
 import { Search, MapPin, Filter, Star, Grid, List } from "lucide-react";
 
 const categories = ["All", "Plumbing", "Electrical", "Painting", "Cleaning", "Carpentry", "AC Repair"];
 
-const providers = [
-    { id: 1, name: "Rajesh Kumar", service: "Plumbing Expert", category: "Plumbing", rating: 4.8, reviews: 124, price: 299, experience: "8 years", image: "https://randomuser.me/api/portraits/men/32.jpg", location: "Noida", verified: true },
-    { id: 2, name: "Amit Singh", service: "Master Electrician", category: "Electrical", rating: 4.9, reviews: 89, price: 349, experience: "10 years", image: "https://randomuser.me/api/portraits/men/44.jpg", location: "Delhi", verified: true },
-    { id: 3, name: "Priya Sharma", service: "Interior Painter", category: "Painting", rating: 4.7, reviews: 67, price: 399, experience: "5 years", image: "https://randomuser.me/api/portraits/women/65.jpg", location: "Ghaziabad", verified: true },
-    { id: 4, name: "Mohammad Ali", service: "Professional Cleaner", category: "Cleaning", rating: 4.6, reviews: 156, price: 249, experience: "6 years", image: "https://randomuser.me/api/portraits/men/22.jpg", location: "Delhi", verified: false },
-    { id: 5, name: "Suresh Yadav", service: "Carpenter", category: "Carpentry", rating: 4.5, reviews: 45, price: 449, experience: "12 years", image: "https://randomuser.me/api/portraits/men/55.jpg", location: "Ghaziabad", verified: true },
-    { id: 6, name: "Deepak Verma", service: "AC Technician", category: "AC Repair", rating: 4.8, reviews: 92, price: 499, experience: "7 years", image: "https://randomuser.me/api/portraits/men/67.jpg", location: "Rohini", verified: true },
-];
-
 export default function ProvidersPage() {
+    const [providers, setProviders] = useState<DashboardProviderDto[]>([]);
     const [selectedCategory, setSelectedCategory] = useState("All");
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
     const [searchQuery, setSearchQuery] = useState("");
     const [showFilters, setShowFilters] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        fetchProviders();
+    }, [selectedCategory]);
+
+    const fetchProviders = async () => {
+        setIsLoading(true);
+        try {
+            const params: any = {};
+            if (selectedCategory !== "All") params.category = selectedCategory;
+
+            const { data } = await api.get<{ providers: DashboardProviderDto[] }>("/public/providers", { params });
+            setProviders(data.providers || []);
+        } catch (error) {
+            console.error("Failed to fetch providers", error);
+            setProviders([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const filteredProviders = providers.filter((p) => {
-        const matchesCategory = selectedCategory === "All" || p.category === selectedCategory;
-        const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.service.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesCategory && matchesSearch;
+        // Client-side search and filtering
+        const matchesSearch = (p.businessName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (p.fullName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (p.serviceCategory || "").toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesSearch;
     });
 
     return (
@@ -97,32 +114,33 @@ export default function ProvidersPage() {
                             </div>
                         </div>
 
-                        <div className={viewMode === "grid" ? "grid grid-cols-2 md:grid-cols-3 gap-3" : "space-y-3"}>
-                            {filteredProviders.map((provider) => (
-                                <Link key={provider.id} href={`/providers/${provider.id}`} className={`bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow ${viewMode === "list" ? "flex items-center p-3" : "p-3"}`}>
-                                    <div className={viewMode === "list" ? "flex items-center flex-1" : ""}>
-                                        <img src={provider.image} alt={provider.name} className={`rounded-full object-cover ${viewMode === "list" ? "w-12 h-12 mr-3" : "w-14 h-14 mx-auto mb-2"}`} />
-                                        <div className={viewMode === "list" ? "flex-1" : "text-center"}>
-                                            <div className="flex items-center justify-center gap-1 mb-0.5">
-                                                <h3 className="text-sm font-semibold text-gray-900 truncate">{provider.name}</h3>
-                                                {provider.verified && <span className="bg-green-100 text-green-600 text-[10px] px-1 rounded">✓</span>}
+                        {isLoading ? (
+                            <div className="text-center py-10">Loading...</div>
+                        ) : (
+                            <div className={viewMode === "grid" ? "grid grid-cols-2 md:grid-cols-3 gap-3" : "space-y-3"}>
+                                {filteredProviders.length > 0 ? (
+                                    filteredProviders.map((provider) => (
+                                        <Link key={provider.id} href={`/providers/${provider.id}`} className={`bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow ${viewMode === "list" ? "flex items-center p-3" : "p-3"}`}>
+                                            <div className={viewMode === "list" ? "flex items-center flex-1" : ""}>
+                                                <img src={provider.profilePicture || "https://randomuser.me/api/portraits/men/1.jpg"} alt={provider.fullName} className={`rounded-full object-cover ${viewMode === "list" ? "w-12 h-12 mr-3" : "w-14 h-14 mx-auto mb-2"}`} />
+                                                <div className={viewMode === "list" ? "flex-1" : "text-center"}>
+                                                    <div className="flex items-center justify-center gap-1 mb-0.5">
+                                                        <h3 className="text-sm font-semibold text-gray-900 truncate">{provider.businessName || provider.fullName}</h3>
+                                                    </div>
+                                                    <p className="text-xs text-gray-500 mb-1">{provider.serviceCategory}</p>
+                                                    <div className="flex items-center justify-center gap-1 mb-1">
+                                                        <span className="text-xs text-gray-500">{provider.experience} Yrs Exp.</span>
+                                                    </div>
+                                                    <p className="text-xs text-gray-500"><MapPin className="w-3 h-3 inline" />{provider.serviceArea}</p>
+                                                </div>
                                             </div>
-                                            <p className="text-xs text-gray-500 mb-1">{provider.service}</p>
-                                            <div className="flex items-center justify-center gap-1 mb-1">
-                                                <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                                                <span className="text-xs font-medium">{provider.rating}</span>
-                                                <span className="text-xs text-gray-400">({provider.reviews})</span>
-                                            </div>
-                                            <p className="text-xs text-gray-500"><MapPin className="w-3 h-3 inline" />{provider.location}</p>
-                                        </div>
-                                    </div>
-                                    <div className={viewMode === "list" ? "text-right" : "flex items-center justify-between pt-2 mt-2 border-t border-gray-100"}>
-                                        <span className="text-xs text-gray-500">{provider.experience}</span>
-                                        <span className="text-sm font-semibold text-primary-500">₹{provider.price}/hr</span>
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
+                                        </Link>
+                                    ))
+                                ) : (
+                                    <div className="col-span-full text-center py-10 text-gray-500">No providers found.</div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             </main>

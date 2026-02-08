@@ -1,27 +1,60 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
-import { useAuth } from "@/context/AuthContext";
-import { User, Mail, Phone, MapPin, Camera, Save } from "lucide-react";
+import api from "@/lib/api";
+import { CustomerProfile, CustomerProfileUpdateRequest } from "@/types/backend";
+import { User as UserIcon, Mail, Phone, MapPin, Camera, Save } from "lucide-react";
 
 export default function ProfilePage() {
-    const { user } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
-    const [profile, setProfile] = useState({
-        fullName: user?.name || "John Doe",
-        email: user?.email || "john.doe@example.com",
-        phone: "+91 9876543210",
-        address: "123 Main Street",
-        city: "New Delhi",
-        pincode: "110001",
-        avatar: user?.avatar || "https://randomuser.me/api/portraits/men/1.jpg",
+    const [isLoading, setIsLoading] = useState(true);
+    const [profile, setProfile] = useState<CustomerProfile>({
+        name: "",
+        email: "",
+        phone: "",
+        fullAddress: "",
+        city: "",
+        state: "",
+        pincode: "",
     });
 
-    const handleSave = () => {
-        setIsEditing(false);
-        console.log("Saving profile:", profile);
+    useEffect(() => {
+        fetchProfile();
+    }, []);
+
+    const fetchProfile = async () => {
+        try {
+            const { data } = await api.get<CustomerProfile>("/customer/profile");
+            setProfile(data);
+        } catch (error) {
+            console.error("Failed to fetch profile", error);
+        } finally {
+            setIsLoading(false);
+        }
     };
+
+    const handleSave = async () => {
+        try {
+            const updateData: CustomerProfileUpdateRequest = {
+                name: profile.name,
+                phone: profile.phone,
+                fullAddress: profile.fullAddress,
+                state: profile.state,
+                city: profile.city,
+                pincode: profile.pincode,
+            };
+            await api.put("/customer/profile", updateData);
+            setIsEditing(false);
+            // specific notification or toast could be added here
+            alert("Profile updated successfully!");
+        } catch (error) {
+            console.error("Failed to update profile", error);
+            alert("Failed to update profile");
+        }
+    };
+
+    if (isLoading) return <div className="p-8">Loading...</div>;
 
     return (
         <div className="flex min-h-screen bg-gray-50">
@@ -52,7 +85,7 @@ export default function ProfilePage() {
                     {/* Avatar */}
                     <div className="flex items-center mb-6">
                         <div className="relative">
-                            <img src={profile.avatar} alt={profile.fullName} className="w-16 h-16 rounded-full object-cover" />
+                            <img src={profile.profilePicture || "https://randomuser.me/api/portraits/men/1.jpg"} alt={profile.name} className="w-16 h-16 rounded-full object-cover" />
                             {isEditing && (
                                 <button className="absolute bottom-0 right-0 w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center text-white hover:bg-primary-600">
                                     <Camera className="w-3 h-3" />
@@ -60,8 +93,8 @@ export default function ProfilePage() {
                             )}
                         </div>
                         <div className="ml-4">
-                            <h2 className="text-sm font-semibold text-gray-900">{profile.fullName}</h2>
-                            <p className="text-xs text-gray-500">Customer since Jan 2025</p>
+                            <h2 className="text-sm font-semibold text-gray-900">{profile.name}</h2>
+                            <p className="text-xs text-gray-500">{profile.email}</p>
                         </div>
                     </div>
 
@@ -70,8 +103,8 @@ export default function ProfilePage() {
                         <div>
                             <label className="block text-xs font-medium text-gray-700 mb-1">Full Name</label>
                             <div className="relative">
-                                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                <input type="text" value={profile.fullName} onChange={(e) => setProfile({ ...profile, fullName: e.target.value })} disabled={!isEditing} className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-500" />
+                                <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                <input type="text" value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} disabled={!isEditing} className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-500" />
                             </div>
                         </div>
 
@@ -79,7 +112,7 @@ export default function ProfilePage() {
                             <label className="block text-xs font-medium text-gray-700 mb-1">Email</label>
                             <div className="relative">
                                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                <input type="email" value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} disabled={!isEditing} className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-500" />
+                                <input type="email" value={profile.email} disabled className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-500" />
                             </div>
                         </div>
 
@@ -95,13 +128,18 @@ export default function ProfilePage() {
                             <label className="block text-xs font-medium text-gray-700 mb-1">Address</label>
                             <div className="relative">
                                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                <input type="text" value={profile.address} onChange={(e) => setProfile({ ...profile, address: e.target.value })} disabled={!isEditing} className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-500" />
+                                <input type="text" value={profile.fullAddress} onChange={(e) => setProfile({ ...profile, fullAddress: e.target.value })} disabled={!isEditing} className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-500" />
                             </div>
                         </div>
 
                         <div>
                             <label className="block text-xs font-medium text-gray-700 mb-1">City</label>
                             <input type="text" value={profile.city} onChange={(e) => setProfile({ ...profile, city: e.target.value })} disabled={!isEditing} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-500" />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">State</label>
+                            <input type="text" value={profile.state} onChange={(e) => setProfile({ ...profile, state: e.target.value })} disabled={!isEditing} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-500" />
                         </div>
 
                         <div>
