@@ -25,27 +25,27 @@ export default function ProviderSidebar() {
             {/* Mobile Toggle Button */}
             <button
                 onClick={() => setIsOpen(true)}
-                className="fixed top-3 left-3 z-30 p-2 bg-white dark:bg-slate-900 rounded-lg shadow-md lg:hidden"
+                className="fixed top-3 left-3 z-30 p-2 bg-white rounded-lg shadow-md lg:hidden"
             >
-                <span className="material-symbols-outlined text-slate-600 dark:text-slate-400">menu</span>
+                <span className="material-symbols-outlined text-gray-600">menu</span>
             </button>
 
             {/* Sidebar */}
-            <aside className={`w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col shrink-0 h-screen fixed lg:static top-0 z-50 transition-transform duration-200 ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
+            <aside className={`w-64 border-r border-gray-200 bg-white flex flex-col shrink-0 h-screen fixed lg:static top-0 z-50 transition-transform duration-200 ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
                 <div className="p-6 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                         <div className="bg-primary-500 size-10 rounded-lg flex items-center justify-center text-white">
                             <span className="material-symbols-outlined">build</span>
                         </div>
                         <div>
-                            <h1 className="text-sm font-bold leading-none text-slate-900 dark:text-white">ProFix Solutions</h1>
+                            <h1 className="text-sm font-bold leading-none text-gray-900">ProFix Solutions</h1>
                             <p className="text-[10px] text-primary-500 font-semibold uppercase tracking-wider mt-1">Verified Contractor</p>
                         </div>
                     </div>
                     {/* Close Button for Mobile */}
                     <button
                         onClick={() => setIsOpen(false)}
-                        className="lg:hidden text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                        className="lg:hidden text-gray-500 hover:text-gray-700"
                     >
                         <span className="material-symbols-outlined">close</span>
                     </button>
@@ -56,8 +56,8 @@ export default function ProviderSidebar() {
                         href="/provider/dashboard"
                         onClick={() => setIsOpen(false)}
                         className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive("/provider/dashboard")
-                            ? "bg-primary-50 text-primary-600 dark:bg-primary-900/10 dark:text-primary-400"
-                            : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                            ? "bg-primary-50 text-primary-600"
+                            : "text-gray-600 hover:bg-gray-100"
                             }`}
                     >
                         <span className="material-symbols-outlined">dashboard</span>
@@ -67,8 +67,8 @@ export default function ProviderSidebar() {
                         href="/provider/schedule"
                         onClick={() => setIsOpen(false)}
                         className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive("/provider/schedule")
-                            ? "bg-primary-50 text-primary-600 dark:bg-primary-900/10 dark:text-primary-400"
-                            : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                            ? "bg-primary-50 text-primary-600"
+                            : "text-gray-600 hover:bg-gray-100"
                             }`}
                     >
                         <span className="material-symbols-outlined">calendar_today</span>
@@ -78,8 +78,8 @@ export default function ProviderSidebar() {
                         href="/provider/earnings"
                         onClick={() => setIsOpen(false)}
                         className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive("/provider/earnings")
-                            ? "bg-primary-50 text-primary-600 dark:bg-primary-900/10 dark:text-primary-400"
-                            : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                            ? "bg-primary-50 text-primary-600"
+                            : "text-gray-600 hover:bg-gray-100"
                             }`}
                     >
                         <span className="material-symbols-outlined">payments</span>
@@ -89,27 +89,27 @@ export default function ProviderSidebar() {
                         href="/provider/areas"
                         onClick={() => setIsOpen(false)}
                         className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive("/provider/areas")
-                            ? "bg-primary-50 text-primary-600 dark:bg-primary-900/10 dark:text-primary-400"
-                            : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                            ? "bg-primary-50 text-primary-600"
+                            : "text-gray-600 hover:bg-gray-100"
                             }`}
                     >
                         <span className="material-symbols-outlined">map</span>
                         <span className="text-sm font-medium leading-normal">Service Areas</span>
                     </Link>
-                    <div className="pt-4 pb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Account</div>
+                    <div className="pt-4 pb-2 px-3 text-[11px] font-bold text-gray-400 uppercase tracking-widest">Account</div>
                     <Link
                         href="/provider/profile"
                         onClick={() => setIsOpen(false)}
                         className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive("/provider/profile")
-                            ? "bg-primary-50 text-primary-600 dark:bg-primary-900/10 dark:text-primary-400"
-                            : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                            ? "bg-primary-50 text-primary-600"
+                            : "text-gray-600 hover:bg-gray-100"
                             }`}
                     >
                         <span className="material-symbols-outlined">settings</span>
                         <span className="text-sm font-medium leading-normal">Profile Settings</span>
                     </Link>
                 </nav>
-                <div className="p-4 border-t border-slate-200 dark:border-slate-800 space-y-2">
+                <div className="p-4 border-t border-gray-200 space-y-2">
                     <button className="w-full flex items-center justify-center gap-2 bg-primary-500 text-white rounded-lg h-10 px-4 text-sm font-bold hover:bg-primary-600 transition-all">
                         <span className="material-symbols-outlined text-[20px]">sensors</span>
                         <span>Go Online</span>

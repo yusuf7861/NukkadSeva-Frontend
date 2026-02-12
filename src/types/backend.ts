@@ -11,9 +11,14 @@ export interface User {
 }
 
 export interface AuthResponse {
-    token: string;
-    username: string;
-    role: string;
+    user: {
+        id: number;
+        email: string;
+        role: string;
+    };
+    access_token: string;
+    token_type: string;
+    expires_in: number;
 }
 
 export interface UserRequest {
@@ -87,4 +92,37 @@ export interface BookingRequest {
 export interface ApiResponse {
     status: string;
     message: string;
+}
+
+export interface LoginRequest {
+    email: string;
+    password?: string;
+}
+
+// Duplicate AuthResponse removed
+
+export interface ProviderRegistrationData {
+    fullName: string;
+    dob: string;
+    mobileNumber: string;
+    email: string;
+    photograph: File | null;
+    businessName: string;
+    serviceCategory: string;
+    serviceArea: string;
+    experience: number;
+    languages: string;
+    fullAddress: string;
+    state: string;
+    city: string;
+    pincode: string;
+    govtId: File | null;
+    gstin: string;
+    qualification: File | null;
+    policeVerification: File | null;
+    bio: string;
+    profilePicture: File | null;
+    availability: string;
+    agreeToS: boolean;
+    agreeToBgCheck: boolean;
 }

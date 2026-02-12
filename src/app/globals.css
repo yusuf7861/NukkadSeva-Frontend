@@ -45,7 +45,7 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: "Inter", system-ui, sans-serif;
+  @apply font-sans;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
