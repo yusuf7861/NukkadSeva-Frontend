@@ -33,7 +33,7 @@ export default function SignupPage() {
 
         setIsLoading(true);
         try {
-            await signup(formData.fullName, formData.email, formData.password);
+            await signup(formData.fullName, formData.email, formData.password, formData.phone);
         } finally {
             setIsLoading(false);
         }

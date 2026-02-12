@@ -11,14 +11,19 @@ export interface User {
 }
 
 export interface AuthResponse {
-    user: {
-        id: number;
-        email: string;
-        role: string;
-    };
     access_token: string;
+    refresh_token: string | null;
     token_type: string;
-    expires_in: number;
+    expires_in?: number;
+}
+
+export interface DecodedToken {
+    role: string;
+    user_id: number;
+    profile_id: number;
+    sub: string; // email
+    iat: number;
+    exp: number;
 }
 
 export interface UserRequest {
