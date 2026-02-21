@@ -24,9 +24,7 @@ export default function Header() {
                         <Link href="/" className="text-sm text-gray-600 hover:text-primary-500 transition-colors">
                             Home
                         </Link>
-                        <Link href="/providers" className="text-sm text-gray-600 hover:text-primary-500 transition-colors">
-                            Services
-                        </Link>
+
                         <Link href="/providers" className="text-sm text-gray-600 hover:text-primary-500 transition-colors">
                             Providers
                         </Link>
@@ -45,7 +43,7 @@ export default function Header() {
                                         alt={user.name}
                                         className="w-8 h-8 rounded-full object-cover"
                                     />
-                                    <span className="text-sm font-medium text-gray-700">{user.name.split(" ")[0]}</span>
+                                    <span className="text-sm font-medium text-gray-700">{user.name?.split(" ")[0]}</span>
                                     <ChevronDown className="w-4 h-4 text-gray-500" />
                                 </button>
 
@@ -138,13 +136,7 @@ export default function Header() {
                             >
                                 Home
                             </Link>
-                            <Link
-                                href="/providers"
-                                className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg"
-                                onClick={() => setIsMobileMenuOpen(false)}
-                            >
-                                Services
-                            </Link>
+
                             <Link
                                 href="/providers"
                                 className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg"

@@ -31,6 +31,35 @@ export interface UserRequest {
     password?: string;
 }
 
+// Response from GET /api/customer/profile
+export interface CustomerProfileResponse {
+    id: number;
+    fullName: string;
+    mobileNumber: string;
+    email: string;
+    photograph: string;
+    address: {
+        id: number;
+        fullAddress: string;
+        state: string;
+        city: string;
+        pincode: string;
+    };
+    createdAt: string;
+    updatedAt: string;
+}
+
+// Request body for PUT /api/customer/profile
+export interface CustomerProfileUpdateRequest {
+    name: string;
+    phone: string;
+    fullAddress: string;
+    state: string;
+    city: string;
+    pincode: string;
+}
+
+// Legacy interface (keep for now or refactor usages)
 export interface CustomerProfile {
     id?: number;
     name: string;
@@ -41,15 +70,6 @@ export interface CustomerProfile {
     city: string;
     pincode: string;
     profilePicture?: string;
-}
-
-export interface CustomerProfileUpdateRequest {
-    name: string;
-    phone: string;
-    fullAddress: string;
-    state: string;
-    city: string;
-    pincode: string;
 }
 
 export interface DashboardProviderDto {
@@ -130,4 +150,15 @@ export interface ProviderRegistrationData {
     availability: string;
     agreeToS: boolean;
     agreeToBgCheck: boolean;
+}
+
+export interface PincodeInfo {
+    pincode: string;
+    areaName: string;
+}
+
+export interface PublicCityResponse {
+    cityName: string;
+    state: string;
+    pincodes: PincodeInfo[];
 }

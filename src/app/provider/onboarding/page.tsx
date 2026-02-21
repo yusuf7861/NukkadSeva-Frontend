@@ -6,6 +6,8 @@ import { useAuth } from "@/context/AuthContext";
 import { ProviderRegistrationData } from "@/types/backend";
 import { useRouter } from "next/navigation";
 
+import toast from "react-hot-toast";
+
 export default function ProviderOnboardingPage() {
     const { registerProvider } = useAuth();
     const router = useRouter();
@@ -63,6 +65,7 @@ export default function ProviderOnboardingPage() {
         e.preventDefault();
         setError(null);
         setIsLoading(true);
+        const loadingToast = toast.loading("Submitting application...");
 
         try {
             const data = new FormData();
@@ -79,10 +82,13 @@ export default function ProviderOnboardingPage() {
             });
 
             await registerProvider(data);
+            toast.success("Application submitted successfully!", { id: loadingToast });
             router.push("/provider/verify-email?sent=true");
 
         } catch (err: any) {
-            setError(err.message || "Failed to register. Please try again.");
+            const errorMessage = err.response?.data?.message || err.message || "Failed to register. Please try again.";
+            setError(errorMessage);
+            toast.error(errorMessage, { id: loadingToast });
             setIsLoading(false);
         }
     };

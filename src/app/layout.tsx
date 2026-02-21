@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 
+import { Toaster } from "react-hot-toast";
+
 const interClassName = "font-sans";
 
 export const metadata: Metadata = {
@@ -21,6 +23,7 @@ export default function RootLayout({
             </head>
             <body className={interClassName}>
                 <AuthProvider>{children}</AuthProvider>
+                <Toaster position="top-center" />
             </body>
         </html>
     );

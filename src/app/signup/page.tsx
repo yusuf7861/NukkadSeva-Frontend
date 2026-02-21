@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { User, Mail, Phone, Lock, Eye, EyeOff, ArrowRight, ArrowLeft, CheckCircle } from "lucide-react";
 
+import toast from "react-hot-toast";
+
 export default function SignupPage() {
     const { signup } = useAuth();
     const [step, setStep] = useState(1);
@@ -27,13 +29,18 @@ export default function SignupPage() {
         }
 
         if (formData.password !== formData.confirmPassword) {
-            alert("Passwords don't match!");
+            toast.error("Passwords don't match!");
             return;
         }
 
         setIsLoading(true);
+        const loadingToast = toast.loading("Creating account...");
         try {
             await signup(formData.fullName, formData.email, formData.password, formData.phone);
+            toast.success("Account created successfully!", { id: loadingToast });
+        } catch (error: any) {
+            const errorMessage = error.response?.data?.message || error.message || "Signup failed. Please try again.";
+            toast.error(errorMessage, { id: loadingToast });
         } finally {
             setIsLoading(false);
         }

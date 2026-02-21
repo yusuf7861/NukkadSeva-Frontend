@@ -1,14 +1,20 @@
+"use client";
+
+import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import api from "@/lib/api";
 import Link from "next/link";
 import { Search, MapPin, Star, Shield, Clock, ArrowRight, CheckCircle } from "lucide-react";
+import { PublicCityResponse } from "@/types/backend";
 
 const services = [
     { name: "Plumbing", icon: "🔧", color: "bg-blue-100" },
     { name: "Electrical", icon: "⚡", color: "bg-yellow-100" },
     { name: "Painting", icon: "🎨", color: "bg-pink-100" },
     { name: "Cleaning", icon: "🧹", color: "bg-green-100" },
-    { name: "Carpentry", icon: "🪚", color: "bg-orange-100" },
+    { name: "Carpentry", icon: "🪚", color: "bg-green-100" },
     { name: "AC Repair", icon: "❄️", color: "bg-cyan-100" },
 ];
 
@@ -26,6 +32,44 @@ const topProviders = [
 ];
 
 export default function HomePage() {
+    const router = useRouter();
+    const [selectedCity, setSelectedCity] = useState("");
+    const [selectedPincode, setSelectedPincode] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [citiesData, setCitiesData] = useState<PublicCityResponse[]>([]);
+
+    useEffect(() => {
+        const fetchCities = async () => {
+            try {
+                const { data } = await api.get<PublicCityResponse[]>("/public/providers/cities");
+                setCitiesData(data);
+            } catch (error) {
+                console.error("Failed to fetch cities", error);
+            }
+        };
+        fetchCities();
+    }, []);
+
+    // Derive pincodes from the selected city
+    const pincodes = useMemo(() => {
+        if (!selectedCity) return [];
+        const city = citiesData.find((c) => c.cityName === selectedCity);
+        return city?.pincodes || [];
+    }, [selectedCity, citiesData]);
+
+    // Reset pincode when city changes
+    useEffect(() => {
+        setSelectedPincode("");
+    }, [selectedCity]);
+
+    const handleSearch = () => {
+        const params = new URLSearchParams();
+        if (selectedCity) params.append("city", selectedCity);
+        if (selectedPincode) params.append("pincode", selectedPincode);
+        if (searchTerm) params.append("search", searchTerm);
+        router.push(`/services${params.toString() ? `?${params.toString()}` : ""}`);
+    };
+
     return (
         <div className="min-h-screen bg-gray-50">
             <Header />
@@ -33,7 +77,7 @@ export default function HomePage() {
             {/* Hero Section */}
             <section className="bg-gradient-to-br from-primary-500 to-primary-700 text-white py-10 md:py-16">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6">
-                    <div className="max-w-2xl">
+                    <div className="max-w-3xl">
                         <h1 className="text-2xl md:text-4xl font-bold mb-3 md:mb-4 leading-tight">
                             Find Trusted Local Service Providers
                         </h1>
@@ -41,26 +85,69 @@ export default function HomePage() {
                             Book verified professionals for plumbing, electrical, painting, and more. Quick, reliable, and affordable.
                         </p>
 
-                        {/* Search Box */}
-                        <div className="bg-white rounded-lg p-2 shadow-lg">
-                            <div className="flex flex-col sm:flex-row gap-2">
-                                <div className="flex-1 flex items-center px-3 py-2 border-b sm:border-b-0 sm:border-r border-gray-200">
-                                    <Search className="w-4 h-4 text-gray-400 mr-2" />
+                        {/* Service Finder */}
+                        <div className="bg-white rounded-lg p-3 shadow-lg">
+                            <div className="flex flex-col md:flex-row gap-2">
+                                {/* City Dropdown */}
+                                <div className="relative md:w-40">
+                                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                    <select
+                                        value={selectedCity}
+                                        onChange={(e) => setSelectedCity(e.target.value)}
+                                        className="w-full pl-9 pr-8 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-500 transition appearance-none bg-white"
+                                    >
+                                        <option value="">Select City</option>
+                                        {citiesData.map((city) => (
+                                            <option key={city.cityName} value={city.cityName}>{city.cityName}</option>
+                                        ))}
+                                    </select>
+                                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                {/* Pincode Dropdown */}
+                                <div className="relative md:w-36">
+                                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                    <select
+                                        value={selectedPincode}
+                                        onChange={(e) => setSelectedPincode(e.target.value)}
+                                        disabled={!selectedCity}
+                                        className="w-full pl-9 pr-8 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-500 transition appearance-none bg-white disabled:bg-gray-100 disabled:text-gray-400"
+                                    >
+                                        <option value="">{selectedCity ? "Select Pincode" : "Select City First"}</option>
+                                        {pincodes.map((pin) => (
+                                            <option key={pin.pincode} value={pin.pincode}>
+                                                {pin.pincode}{pin.areaName ? ` - ${pin.areaName}` : ""}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                {/* Service Search */}
+                                <div className="relative flex-1">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                                     <input
                                         type="text"
-                                        placeholder="Search services..."
-                                        className="w-full text-sm text-gray-800 outline-none"
+                                        placeholder="Search for services..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                                        className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-500 transition"
                                     />
                                 </div>
-                                <div className="flex items-center px-3 py-2">
-                                    <MapPin className="w-4 h-4 text-gray-400 mr-2" />
-                                    <input
-                                        type="text"
-                                        placeholder="Location"
-                                        className="w-full sm:w-28 text-sm text-gray-800 outline-none"
-                                    />
-                                </div>
-                                <button className="bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-600 transition-colors">
+
+                                <button
+                                    onClick={handleSearch}
+                                    className="bg-primary-500 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-primary-600 transition-colors whitespace-nowrap"
+                                >
                                     Search
                                 </button>
                             </div>

@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import api from "@/lib/api";
-import { DashboardProviderDto } from "@/types/backend";
+import { DashboardProviderDto, PublicCityResponse } from "@/types/backend";
 import { Search, MapPin, Filter, Star, Grid, List } from "lucide-react";
 
 const categories = ["All", "Plumbing", "Electrical", "Painting", "Cleaning", "Carpentry", "AC Repair"];
@@ -17,16 +17,46 @@ export default function ProvidersPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [showFilters, setShowFilters] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [citiesData, setCitiesData] = useState<PublicCityResponse[]>([]);
+    const [selectedCity, setSelectedCity] = useState("");
+    const [selectedPincode, setSelectedPincode] = useState("");
+
+    // Fetch cities on mount
+    useEffect(() => {
+        const fetchCities = async () => {
+            try {
+                const { data } = await api.get<PublicCityResponse[]>("/public/providers/cities");
+                setCitiesData(data);
+            } catch (error) {
+                console.error("Failed to fetch cities", error);
+            }
+        };
+        fetchCities();
+    }, []);
+
+    // Derive pincodes from selected city
+    const pincodes = useMemo(() => {
+        if (!selectedCity) return [];
+        const city = citiesData.find((c) => c.cityName === selectedCity);
+        return city?.pincodes || [];
+    }, [selectedCity, citiesData]);
+
+    // Reset pincode when city changes
+    useEffect(() => {
+        setSelectedPincode("");
+    }, [selectedCity]);
 
     useEffect(() => {
         fetchProviders();
-    }, [selectedCategory]);
+    }, [selectedCategory, selectedCity, selectedPincode]);
 
     const fetchProviders = async () => {
         setIsLoading(true);
         try {
             const params: any = {};
             if (selectedCategory !== "All") params.category = selectedCategory;
+            if (selectedCity) params.city = selectedCity;
+            if (selectedPincode) params.pincode = selectedPincode;
 
             const { data } = await api.get<{ providers: DashboardProviderDto[] }>("/public/providers", { params });
             setProviders(data.providers || []);
@@ -58,10 +88,40 @@ export default function ProvidersPage() {
                             <Search className="w-4 h-4 text-gray-400 mr-2" />
                             <input type="text" placeholder="Search services..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full text-sm outline-none" />
                         </div>
-                        <div className="flex items-center px-3 py-2 border border-gray-300 rounded-lg">
-                            <MapPin className="w-4 h-4 text-gray-400 mr-2" />
-                            <input type="text" placeholder="Location" className="w-full sm:w-24 text-sm outline-none" />
+
+                        {/* City Dropdown */}
+                        <div className="relative">
+                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <select
+                                value={selectedCity}
+                                onChange={(e) => setSelectedCity(e.target.value)}
+                                className="w-full sm:w-36 pl-9 pr-8 py-2 border border-gray-300 rounded-lg text-sm outline-none appearance-none bg-white"
+                            >
+                                <option value="">All Cities</option>
+                                {citiesData.map((city) => (
+                                    <option key={city.cityName} value={city.cityName}>{city.cityName}</option>
+                                ))}
+                            </select>
                         </div>
+
+                        {/* Pincode Dropdown */}
+                        <div className="relative">
+                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <select
+                                value={selectedPincode}
+                                onChange={(e) => setSelectedPincode(e.target.value)}
+                                disabled={!selectedCity}
+                                className="w-full sm:w-44 pl-9 pr-8 py-2 border border-gray-300 rounded-lg text-sm outline-none appearance-none bg-white disabled:bg-gray-100 disabled:text-gray-400"
+                            >
+                                <option value="">{selectedCity ? "All Pincodes" : "Select City First"}</option>
+                                {pincodes.map((pin) => (
+                                    <option key={pin.pincode} value={pin.pincode}>
+                                        {pin.pincode}{pin.areaName ? ` - ${pin.areaName}` : ""}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
                         <button onClick={() => setShowFilters(!showFilters)} className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">
                             <Filter className="w-4 h-4 mr-1" />Filters
                         </button>

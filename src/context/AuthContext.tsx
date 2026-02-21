@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { useRouter, usePathname } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import api from "@/lib/api";
-import { User, CustomerProfile, AuthResponse, DecodedToken } from "@/types/backend";
+import { User, CustomerProfile, AuthResponse, DecodedToken, CustomerProfileResponse } from "@/types/backend";
 
 interface AuthContextType {
     user: User | null;
@@ -61,12 +61,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // If user is a customer, fetch profile to get name and avatar
             if (decoded.role === "CUSTOMER" || decoded.role === "USER") {
                 try {
-                    const { data: profile } = await api.get<CustomerProfile>("/customer/profile");
+                    const { data: profile } = await api.get<CustomerProfileResponse>("/customer/profile");
                     userData = {
                         ...userData,
-                        name: profile.name || userData.username,
+                        name: profile.fullName || userData.username,
                         email: profile.email || userData.email,
-                        avatar: profile.profilePicture
+                        avatar: profile.photograph
                     };
                 } catch (e) {
                     console.warn("Failed to fetch customer profile", e);
@@ -235,16 +235,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         if (!isLoading) {
             if (user && authRoutes.includes(pathname)) {
-                if (user.role === "ADMIN") router.push("/admin/dashboard");
-                else if (user.role === "PROVIDER") router.push("/provider/dashboard");
-                else router.push("/customer/dashboard");
+                if (user.role === "ADMIN") {
+                    router.push("/admin/dashboard");
+                } else if (user.role === "SERVICE_PROVIDER" || user.role === "PROVIDER") {
+                    router.push("/provider/dashboard");
+                } else {
+                    router.push("/customer/dashboard");
+                }
             }
 
             // Simple protection: generic check. Middleware handles specific role checks better
             // Exclude public provider routes
             const isPublicProviderRoute = pathname.startsWith("/provider/onboarding") || pathname.startsWith("/provider/verify-email");
 
-            if (!user && !isPublicProviderRoute && (pathname.startsWith("/customer") || pathname.startsWith("/admin") || pathname.startsWith("/provider"))) {
+            if (!user && !isPublicProviderRoute && (protectedRoutes.some(route => pathname.startsWith(route)))) {
                 router.push("/login");
             }
         }
@@ -263,7 +267,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 verifyProviderEmail,
             }}
         >
-            {children}
+            {isLoading ? (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="w-12 h-12 border-4 border-primary-100 border-t-primary-500 rounded-full animate-spin"></div>
+                        <p className="text-gray-500 font-medium animate-pulse">Loading...</p>
+                    </div>
+                </div>
+            ) : (
+                children
+            )}
         </AuthContext.Provider>
     );
 }

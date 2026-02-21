@@ -64,6 +64,17 @@ export default function ProviderSidebar() {
                         <span className="text-sm font-medium leading-normal">Dashboard</span>
                     </Link>
                     <Link
+                        href="/provider/services"
+                        onClick={() => setIsOpen(false)}
+                        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive("/provider/services")
+                            ? "bg-primary-50 text-primary-600"
+                            : "text-gray-600 hover:bg-gray-100"
+                            }`}
+                    >
+                        <span className="material-symbols-outlined">lists</span>
+                        <span className="text-sm font-medium leading-normal">My Services</span>
+                    </Link>
+                    <Link
                         href="/provider/schedule"
                         onClick={() => setIsOpen(false)}
                         className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive("/provider/schedule")

@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
+
+import toast from "react-hot-toast";
 
 export default function LoginPage() {
     const { login } = useAuth();
@@ -13,14 +16,26 @@ export default function LoginPage() {
     const [formData, setFormData] = useState({ email: "", password: "" });
     const [error, setError] = useState("");
 
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const redirectUrl = searchParams.get("redirect");
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setError("");
+        const loadingToast = toast.loading("Signing in...");
         try {
             await login(formData.email, formData.password, userType);
+            toast.success("Welcome back!", { id: loadingToast });
+            if (redirectUrl) {
+                router.push(redirectUrl);
+            }
+            // If no redirectUrl, AuthContext login function handles default redirection
         } catch (err: any) {
-            setError(err.message || "Login failed. Please check your credentials.");
+            const errorMessage = err.response?.data?.message || err.message || "Login failed. Please check your credentials.";
+            setError(errorMessage);
+            toast.error(errorMessage, { id: loadingToast });
         } finally {
             setIsLoading(false);
         }
