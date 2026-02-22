@@ -5,6 +5,8 @@ import Sidebar from "@/components/Sidebar";
 import RatingModal from "@/components/RatingModal";
 import { Calendar, Clock, MapPin, Phone, Star, CheckCircle, XCircle } from "lucide-react";
 import api from "@/lib/api";
+import { useCustomerSocket } from "@/hooks/useCustomerSocket";
+import toast from "react-hot-toast";
 
 type BookingType = {
     id: string;
@@ -18,6 +20,8 @@ type BookingType = {
     status: string;
     amount: number;
     canRate: boolean;
+    otp: string | null;
+    rejectionReason: string | null;
 };
 
 const tabs = ["All", "Upcoming", "Completed", "Cancelled"];
@@ -28,6 +32,46 @@ export default function BookingsPage() {
     const [selectedBooking, setSelectedBooking] = useState<BookingType | null>(null);
     const [bookings, setBookings] = useState<BookingType[]>([]);
     const [loading, setLoading] = useState(true);
+    const [cancellingId, setCancellingId] = useState<string | null>(null);
+
+    // Grab the token (simulate useAuth for token if possible, or assuming you have it imported)
+    // NOTE: In a real app we'd get this from context like in ProviderDashboard
+    const [token, setToken] = useState<string | null>(null);
+
+    useEffect(() => {
+        // Retrieve token from local storage (or context) for the websocket
+        const storedAuth = localStorage.getItem("auth");
+        if (storedAuth) {
+            try {
+                const parsed = JSON.parse(storedAuth);
+                setToken(parsed.token || null);
+            } catch (e) { }
+        }
+    }, []);
+
+    const { isConnected, bookingUpdates, removeUpdate } = useCustomerSocket(token);
+
+    useEffect(() => {
+        if (bookingUpdates.length > 0) {
+            const latest = bookingUpdates[0];
+            setBookings(prev => prev.map(b => {
+                if (b.id === latest.bookingId) {
+                    return {
+                        ...b,
+                        status: latest.status === 'PENDING' || latest.status === 'APPROVED' ? 'Upcoming' :
+                            latest.status === 'COMPLETED' ? 'Completed' :
+                                latest.status === 'REJECTED' || latest.status === 'CANCELLED' ? 'Cancelled' : latest.status,
+                        otp: latest.completionOtp || b.otp,
+                        rejectionReason: latest.rejectionReason || b.rejectionReason
+                    };
+                }
+                return b;
+            }));
+
+            toast.success(`Booking status updated to ${latest.status}`, { icon: "🔔" });
+            removeUpdate(latest.bookingId);
+        }
+    }, [bookingUpdates, removeUpdate]);
 
     useEffect(() => {
         const fetchBookings = async () => {
@@ -44,12 +88,14 @@ export default function BookingsPage() {
                         date: dt ? dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "TBD",
                         time: dt ? dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : "TBD",
                         address: b.customer?.address || "No address provided",
-                        phone: b.customer?.phone || "No phone provided",
+                        phone: b.provider?.contactNumber || "No phone provided",
                         status: b.status === 'PENDING' || b.status === 'APPROVED' ? 'Upcoming' :
                             b.status === 'COMPLETED' ? 'Completed' :
                                 b.status === 'REJECTED' || b.status === 'CANCELLED' ? 'Cancelled' : b.status,
                         amount: b.priceEstimate || 0,
-                        canRate: b.status === 'COMPLETED'
+                        canRate: b.status === 'COMPLETED',
+                        otp: b.completionOtp || null,
+                        rejectionReason: b.rejectionReason || null
                     };
                 });
                 setBookings(mappedBookings);
@@ -65,6 +111,20 @@ export default function BookingsPage() {
 
     const filteredBookings = bookings.filter((b) => activeTab === "All" || b.status === activeTab);
 
+    const handleCancel = async (id: string) => {
+        if (!confirm("Are you sure you want to cancel this booking?")) return;
+        setCancellingId(id);
+        try {
+            await api.put(`/booking/${id}/cancel`);
+            toast.success("Booking cancelled successfully");
+            setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'Cancelled' } : b));
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || "Failed to cancel booking");
+        } finally {
+            setCancellingId(null);
+        }
+    };
+
     const getStatusColor = (status: string) => {
         switch (status) {
             case "Completed": return "bg-green-100 text-green-600";
@@ -78,9 +138,17 @@ export default function BookingsPage() {
         <div className="flex min-h-screen bg-gray-50">
             <Sidebar />
             <main className="flex-1 p-4 md:p-6 lg:p-8 lg:ml-0">
-                <div className="mb-6">
-                    <h1 className="text-lg md:text-xl font-bold text-gray-900">My Bookings</h1>
-                    <p className="text-sm text-gray-500">Track all your service bookings</p>
+                <div className="mb-6 flex justify-between items-center">
+                    <div>
+                        <h1 className="text-lg md:text-xl font-bold text-gray-900">My Bookings</h1>
+                        <p className="text-sm text-gray-500">Track all your service bookings</p>
+                    </div>
+                    {isConnected && (
+                        <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-xs font-bold border border-emerald-200">
+                            <span className="inline-block size-2 rounded-full bg-emerald-500 animate-pulse" />
+                            Live Sync
+                        </div>
+                    )}
                 </div>
 
                 {/* Tabs */}
@@ -114,6 +182,11 @@ export default function BookingsPage() {
                                             <p className="flex items-center mt-1 text-xs text-gray-500">
                                                 <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />{booking.address}
                                             </p>
+                                            {booking.status === "Upcoming" && booking.phone && (
+                                                <p className="flex items-center mt-1 text-xs font-semibold text-primary-600">
+                                                    <Phone className="w-3 h-3 mr-1 flex-shrink-0" /> Provider: {booking.phone}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="text-right">
@@ -125,8 +198,19 @@ export default function BookingsPage() {
                                 <div className="flex justify-end mt-3 pt-3 border-t border-gray-100 space-x-2">
                                     {booking.status === "Upcoming" && (
                                         <>
-                                            <button className="px-3 py-1.5 text-xs border border-red-300 text-red-600 rounded-lg hover:bg-red-50">Cancel</button>
-                                            <button className="px-3 py-1.5 text-xs border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">Reschedule</button>
+                                            {booking.otp && (
+                                                <div className="flex-1 text-xs font-bold text-gray-700 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200 flex items-center gap-2">
+                                                    <span>Completion OTP:</span>
+                                                    <span className="text-lg tracking-wider text-primary-600 font-mono">{booking.otp}</span>
+                                                </div>
+                                            )}
+                                            <button
+                                                onClick={() => handleCancel(booking.id)}
+                                                disabled={cancellingId === booking.id}
+                                                className="px-3 py-1.5 text-xs border border-red-300 text-red-600 rounded-lg hover:bg-red-50 disabled:opacity-50"
+                                            >
+                                                {cancellingId === booking.id ? "Cancelling..." : "Cancel"}
+                                            </button>
                                         </>
                                     )}
                                     {booking.canRate && (
@@ -138,6 +222,16 @@ export default function BookingsPage() {
                                         <span className="text-xs text-gray-500 flex items-center"><CheckCircle className="w-3 h-3 mr-1 text-green-500" />Rated</span>
                                     )}
                                 </div>
+
+                                {booking.status === "Cancelled" && booking.rejectionReason && (
+                                    <div className="mt-3 bg-red-50 border border-red-100 rounded-lg p-3 flex gap-3 text-sm text-red-800">
+                                        <XCircle className="w-5 h-5 flex-shrink-0 text-red-500" />
+                                        <div>
+                                            <p className="font-semibold text-red-900 mb-0.5">Declined by Provider</p>
+                                            <p className="opacity-90">{booking.rejectionReason}</p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         ))}
 

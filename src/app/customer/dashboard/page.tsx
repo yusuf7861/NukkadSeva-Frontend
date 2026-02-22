@@ -6,6 +6,8 @@ import api from "@/lib/api";
 import { CustomerDashboardResponse } from "@/types/backend";
 import { Calendar, DollarSign, Star, Clock, ArrowRight, CheckCircle, Inbox } from "lucide-react";
 import Link from "next/link";
+import { useCustomerSocket } from "@/hooks/useCustomerSocket";
+import toast from "react-hot-toast";
 
 const quickActions = [
     { label: "Book Service", href: "/providers", icon: Calendar },
@@ -18,6 +20,38 @@ export default function DashboardPage() {
     const [dashboard, setDashboard] = useState<CustomerDashboardResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const [token, setToken] = useState<string | null>(null);
+
+    useEffect(() => {
+        const storedAuth = localStorage.getItem("auth");
+        if (storedAuth) {
+            try {
+                const parsed = JSON.parse(storedAuth);
+                setToken(parsed.token || null);
+            } catch (e) { }
+        }
+    }, []);
+
+    const { isConnected, bookingUpdates, removeUpdate } = useCustomerSocket(token);
+
+    useEffect(() => {
+        if (bookingUpdates.length > 0 && dashboard) {
+            const latest = bookingUpdates[0];
+            setDashboard((prev) => {
+                if (!prev) return prev;
+                const updatedBookings = prev.recentBookings.map(b =>
+                    b.id === latest.bookingId ? { ...b, status: latest.status } : b
+                );
+                return {
+                    ...prev,
+                    recentBookings: updatedBookings
+                }
+            });
+            toast.success(`Booking status updated to ${latest.status}`, { icon: "🔔" });
+            removeUpdate(latest.bookingId);
+        }
+    }, [bookingUpdates, removeUpdate, dashboard]);
 
     useEffect(() => {
         const fetchDashboard = async () => {
@@ -95,9 +129,17 @@ export default function DashboardPage() {
     return (
         <div className="p-4 md:p-6 lg:p-8">
             {/* Header */}
-            <div className="mb-6">
-                <h1 className="text-lg md:text-xl font-bold text-gray-900">Welcome back, {user?.name?.split(" ")[0] || "User"}!</h1>
-                <p className="text-sm text-gray-500">Here&apos;s your account overview</p>
+            <div className="mb-6 flex justify-between items-center">
+                <div>
+                    <h1 className="text-lg md:text-xl font-bold text-gray-900">Welcome back, {user?.name?.split(" ")[0] || "User"}!</h1>
+                    <p className="text-sm text-gray-500">Here&apos;s your account overview</p>
+                </div>
+                {isConnected && (
+                    <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-xs font-bold border border-emerald-200">
+                        <span className="inline-block size-2 rounded-full bg-emerald-500 animate-pulse" />
+                        Live Sync
+                    </div>
+                )}
             </div>
 
             {/* Stats */}

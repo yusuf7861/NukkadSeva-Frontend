@@ -240,7 +240,7 @@ export default function CreateServicePage() {
                                     type="number"
                                     id="durationMinutes"
                                     name="durationMinutes"
-                                    min="1"
+                                    min="15"
                                     step="15"
                                     value={formData.durationMinutes}
                                     onChange={handleChange}
@@ -290,8 +290,8 @@ export default function CreateServicePage() {
                                             <label
                                                 key={pin.pincode}
                                                 className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${formData.pincodes.includes(pin.pincode)
-                                                        ? 'border-primary-500 bg-primary-50'
-                                                        : 'border-gray-200 bg-white hover:border-gray-300'
+                                                    ? 'border-primary-500 bg-primary-50'
+                                                    : 'border-gray-200 bg-white hover:border-gray-300'
                                                     }`}
                                             >
                                                 <input

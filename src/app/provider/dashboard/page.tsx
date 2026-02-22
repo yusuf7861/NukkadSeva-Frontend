@@ -16,8 +16,16 @@ export default function ProviderDashboard() {
 
     const [dashboardData, setDashboardData] = useState<ProviderDashboardResponse | null>(null);
     const [pendingBookings, setPendingBookings] = useState<BookingNotification[]>([]);
+    const [activeBookings, setActiveBookings] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [respondingId, setRespondingId] = useState<string | null>(null);
+    const [feedTab, setFeedTab] = useState<"PENDING" | "UPCOMING">("PENDING");
+    const [otpInputs, setOtpInputs] = useState<Record<string, string>>({});
+    const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+
+    // Decline reason modal state
+    const [declineBookingId, setDeclineBookingId] = useState<string | null>(null);
+    const [declineReason, setDeclineReason] = useState("");
 
     // Fetch existing dashboard on mount
     useEffect(() => {
@@ -38,6 +46,12 @@ export default function ProviderDashboard() {
                     createdAt: b.createdAt,
                 }));
                 setPendingBookings(mappedPending);
+
+                // Fetch all bookings for the provider to populate Active/Upcoming ones
+                const allBRes = await api.get("/booking/provider");
+                const upcoming = allBRes.data.filter((b: any) => b.status === "APPROVED");
+                setActiveBookings(upcoming);
+
             } catch (err) {
                 console.error("Failed to fetch dashboard:", err);
             } finally {
@@ -64,10 +78,14 @@ export default function ProviderDashboard() {
     }, [newBookings]);
 
     const handleRespond = useCallback(
-        async (bookingId: string, action: "ACCEPT" | "DECLINE") => {
+        async (bookingId: string, action: "ACCEPT" | "DECLINE", reason?: string) => {
             setRespondingId(bookingId);
             try {
-                await api.put(`/booking/${bookingId}/respond?action=${action}`);
+                let url = `/booking/${bookingId}/respond?action=${action}`;
+                if (action === "DECLINE" && reason) {
+                    url += `&reason=${encodeURIComponent(reason)}`;
+                }
+                await api.put(url);
                 setPendingBookings((prev) => prev.filter((b) => b.bookingId !== bookingId));
                 removeBooking(bookingId);
                 toast.success(
@@ -83,6 +101,28 @@ export default function ProviderDashboard() {
         },
         [removeBooking]
     );
+
+    const handleComplete = async (bookingId: string) => {
+        const otp = otpInputs[bookingId];
+        if (!otp || otp.length < 4) {
+            toast.error("Please enter a valid OTP");
+            return;
+        }
+        setRespondingId(bookingId);
+        try {
+            await api.put(`/booking/${bookingId}/complete?otp=${otp}`);
+            toast.success("Job marked as complete! 🎉");
+            setActiveBookings(prev => prev.filter(b => b.id !== bookingId));
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || "Failed to complete job.");
+        } finally {
+            setRespondingId(null);
+        }
+    };
+
+    const handleOtpChange = (bookingId: string, val: string) => {
+        setOtpInputs(prev => ({ ...prev, [bookingId]: val }));
+    };
 
     const formatDateTime = (iso: string) => {
         try {
@@ -147,14 +187,72 @@ export default function ProviderDashboard() {
                                 }`} />
                             {isConnected ? "Live" : "Offline"}
                         </div>
-                        <button className="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors">
-                            <span className="material-symbols-outlined">notifications</span>
-                            {pendingBookings.length > 0 && (
-                                <span className="absolute -top-0.5 -right-0.5 size-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">
-                                    {pendingBookings.length > 9 ? "9+" : pendingBookings.length}
-                                </span>
+                        <div className="relative">
+                            <button
+                                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                                className="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors focus:outline-none"
+                            >
+                                <span className="material-symbols-outlined">notifications</span>
+                                {pendingBookings.length > 0 && (
+                                    <span className="absolute -top-0.5 -right-0.5 size-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">
+                                        {pendingBookings.length > 9 ? "9+" : pendingBookings.length}
+                                    </span>
+                                )}
+                            </button>
+
+                            {/* Notifications Dropdown */}
+                            {isNotificationsOpen && (
+                                <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] border border-gray-100 z-50 overflow-hidden animate-fade-in origin-top-right">
+                                    <div className="p-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                                        <h3 className="text-sm font-bold text-gray-900">Notifications</h3>
+                                        <span className="text-xs text-primary-600 font-semibold">{pendingBookings.length} New</span>
+                                    </div>
+                                    <div className="max-h-72 overflow-y-auto">
+                                        {pendingBookings.length === 0 ? (
+                                            <div className="p-8 text-center flex flex-col items-center gap-2">
+                                                <span className="material-symbols-outlined text-gray-300 text-3xl">notifications_paused</span>
+                                                <p className="text-sm text-gray-500">You're all caught up!</p>
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col">
+                                                {pendingBookings.map((b) => (
+                                                    <div
+                                                        key={b.bookingId}
+                                                        onClick={() => {
+                                                            setFeedTab("PENDING");
+                                                            setIsNotificationsOpen(false);
+                                                            document.getElementById(b.bookingId)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                        }}
+                                                        className="p-3 border-b border-gray-50 hover:bg-primary-50/50 cursor-pointer transition-colors flex gap-3 items-start"
+                                                    >
+                                                        <div className="size-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center shrink-0">
+                                                            <span className="material-symbols-outlined text-[16px]">person</span>
+                                                        </div>
+                                                        <div className="flex flex-col min-w-0 flex-1">
+                                                            <div className="flex justify-between items-start gap-2">
+                                                                <span className="text-sm font-bold text-gray-900 truncate">{b.customerName}</span>
+                                                                <span className="text-[10px] font-semibold text-primary-600 shrink-0">{getTimeAgo(b.createdAt)}</span>
+                                                            </div>
+                                                            <p className="text-xs text-gray-600 mt-0.5 line-clamp-2">
+                                                                Requested <span className="font-semibold text-gray-900">{b.serviceType.replace(/_/g, " ")}</span> service.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                    {pendingBookings.length > 0 && (
+                                        <div
+                                            onClick={() => { setFeedTab("PENDING"); setIsNotificationsOpen(false); }}
+                                            className="p-2 border-t border-gray-100 text-center text-xs font-bold text-primary-600 hover:bg-gray-50 cursor-pointer transition-colors uppercase tracking-wider"
+                                        >
+                                            View all pending
+                                        </div>
+                                    )}
+                                </div>
                             )}
-                        </button>
+                        </div>
                     </div>
                 </header>
 
@@ -166,7 +264,7 @@ export default function ProviderDashboard() {
                                 <span className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Pending</span>
                                 <span className="text-amber-500 material-symbols-outlined text-xl">pending_actions</span>
                             </div>
-                            <p className="text-2xl font-bold tracking-tight">{dashboardData?.pendingRequestsCount || pendingBookings.length || 0}</p>
+                            <p className="text-2xl font-bold tracking-tight">{pendingBookings.length}</p>
                             <p className="text-amber-500 text-xs font-medium">Needs response</p>
                         </div>
                         <div className="bg-white p-5 rounded-xl border border-gray-200 flex flex-col gap-1.5">
@@ -196,14 +294,23 @@ export default function ProviderDashboard() {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Booking Requests Feed */}
                         <div className="lg:col-span-2 flex flex-col gap-5">
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                 <div className="flex items-center gap-3">
-                                    <h2 className="text-xl font-bold tracking-tight">Booking Requests</h2>
-                                    {pendingBookings.length > 0 && (
-                                        <span className="bg-primary-50 text-primary-600 px-2.5 py-0.5 rounded-full text-xs font-bold">
-                                            {pendingBookings.length} pending
-                                        </span>
-                                    )}
+                                    <h2 className="text-xl font-bold tracking-tight">Jobs</h2>
+                                    <div className="flex bg-gray-100 rounded-lg p-1 ml-2">
+                                        <button
+                                            onClick={() => setFeedTab("PENDING")}
+                                            className={`px-3 py-1 text-xs font-bold rounded-md transition-colors ${feedTab === "PENDING" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+                                        >
+                                            Pending {pendingBookings.length > 0 && `(${pendingBookings.length})`}
+                                        </button>
+                                        <button
+                                            onClick={() => setFeedTab("UPCOMING")}
+                                            className={`px-3 py-1 text-xs font-bold rounded-md transition-colors ${feedTab === "UPCOMING" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+                                        >
+                                            Upcoming {activeBookings.length > 0 && `(${activeBookings.length})`}
+                                        </button>
+                                    </div>
                                 </div>
                                 <Link href="/provider/create-service">
                                     <button className="bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary-700 transition flex items-center gap-2">
@@ -218,100 +325,155 @@ export default function ProviderDashboard() {
                                     <div className="size-8 border-3 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
                                     <p className="text-gray-400 text-sm">Loading bookings…</p>
                                 </div>
-                            ) : pendingBookings.length === 0 ? (
+                            ) : feedTab === "PENDING" && pendingBookings.length === 0 ? (
                                 <div className="bg-white rounded-xl border border-gray-200 p-12 flex flex-col items-center justify-center text-center">
                                     <div className="size-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                                         <span className="material-symbols-outlined text-3xl text-gray-400">inbox</span>
                                     </div>
                                     <h3 className="font-bold text-gray-700 mb-1">No pending requests</h3>
                                     <p className="text-sm text-gray-400 max-w-xs">
-                                        New booking requests will appear here in real-time when customers book your services.
+                                        New booking requests will appear here in real-time.
+                                    </p>
+                                </div>
+                            ) : feedTab === "UPCOMING" && activeBookings.length === 0 ? (
+                                <div className="bg-white rounded-xl border border-gray-200 p-12 flex flex-col items-center justify-center text-center">
+                                    <div className="size-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                                        <span className="material-symbols-outlined text-3xl text-gray-400">event_available</span>
+                                    </div>
+                                    <h3 className="font-bold text-gray-700 mb-1">No upcoming jobs</h3>
+                                    <p className="text-sm text-gray-400 max-w-xs">
+                                        Accept booking requests to see your upcoming schedule here.
                                     </p>
                                 </div>
                             ) : (
-                                pendingBookings.map((booking) => (
-                                    <div
-                                        key={booking.bookingId}
-                                        className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row animate-fade-in"
-                                    >
-                                        {/* Service Icon Panel */}
-                                        <div className="md:w-44 h-36 md:h-auto overflow-hidden shrink-0 relative bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center">
-                                            <span className="material-symbols-outlined text-5xl text-primary-400 opacity-60">
-                                                {serviceIcon[booking.serviceType] || "home_repair_service"}
-                                            </span>
-                                            {booking.createdAt && (
-                                                <div className="absolute top-3 left-3 bg-white/90 backdrop-blur rounded px-2 py-1 flex items-center gap-1">
-                                                    <span className="material-symbols-outlined text-xs text-gray-900">schedule</span>
-                                                    <span className="text-[10px] font-bold text-gray-900">{getTimeAgo(booking.createdAt)}</span>
-                                                </div>
-                                            )}
-                                        </div>
+                                (feedTab === "PENDING" ? pendingBookings : activeBookings).map((booking) => {
+                                    const isPending = feedTab === "PENDING";
+                                    const bId = isPending ? booking.bookingId : booking.id;
+                                    const cName = isPending ? booking.customerName : booking.customer?.name;
+                                    const sType = booking.serviceType;
+                                    const bDate = booking.bookingDateTime;
+                                    const pEst = isPending ? booking.priceEstimate : booking.priceEstimate;
 
-                                        {/* Booking Details */}
-                                        <div className="p-5 flex-1 flex flex-col justify-between gap-4">
-                                            <div>
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <div>
-                                                        <h3 className="text-lg font-bold text-gray-900">
-                                                            {booking.serviceType.replace(/_/g, " ")}
-                                                        </h3>
-                                                        <p className="text-sm text-gray-500 flex items-center gap-1.5 mt-0.5">
-                                                            <span className="material-symbols-outlined text-[16px]">person</span>
-                                                            {booking.customerName}
-                                                        </p>
+                                    return (
+                                        <div
+                                            key={bId}
+                                            id={bId}
+                                            className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md hover:border-primary-200 transition-all flex flex-col md:flex-row animate-fade-in"
+                                        >
+                                            {/* Service Icon Panel */}
+                                            <div className="md:w-44 h-36 md:h-auto overflow-hidden shrink-0 relative bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center">
+                                                <span className="material-symbols-outlined text-5xl text-primary-400 opacity-60">
+                                                    {serviceIcon[booking.serviceType] || "home_repair_service"}
+                                                </span>
+                                                {booking.createdAt && (
+                                                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur rounded px-2 py-1 flex items-center gap-1">
+                                                        <span className="material-symbols-outlined text-xs text-gray-900">schedule</span>
+                                                        <span className="text-[10px] font-bold text-gray-900">{getTimeAgo(booking.createdAt)}</span>
                                                     </div>
-                                                    <span className="bg-amber-50 text-amber-600 px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider">
-                                                        Pending
-                                                    </span>
-                                                </div>
-
-                                                <div className="flex flex-wrap gap-4 text-sm text-gray-600 mt-3">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <span className="material-symbols-outlined text-[16px] text-gray-400">calendar_today</span>
-                                                        {formatDateTime(booking.bookingDateTime)}
-                                                    </div>
-                                                    {booking.priceEstimate && (
-                                                        <div className="flex items-center gap-1.5">
-                                                            <span className="material-symbols-outlined text-[16px] text-gray-400">payments</span>
-                                                            ₹{Number(booking.priceEstimate).toLocaleString("en-IN")}
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                {booking.note && (
-                                                    <p className="text-sm text-gray-500 mt-3 bg-gray-50 p-3 rounded-lg italic">
-                                                        &ldquo;{booking.note}&rdquo;
-                                                    </p>
                                                 )}
                                             </div>
 
-                                            <div className="flex items-center gap-3">
-                                                <button
-                                                    onClick={() => handleRespond(booking.bookingId, "ACCEPT")}
-                                                    disabled={respondingId === booking.bookingId}
-                                                    className="flex-1 bg-primary-500 text-white rounded-lg h-10 px-4 text-sm font-bold hover:bg-primary-600 active:bg-primary-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                                                >
-                                                    {respondingId === booking.bookingId ? (
-                                                        <div className="size-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                                            {/* Booking Details */}
+                                            <div className="p-5 flex-1 flex flex-col justify-between gap-4">
+                                                <div>
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <div>
+                                                            <h3 className="text-lg font-bold text-gray-900">
+                                                                {sType.replace(/_/g, " ")}
+                                                            </h3>
+                                                            <p className="text-sm text-gray-500 flex items-center gap-1.5 mt-0.5">
+                                                                <span className="material-symbols-outlined text-[16px]">person</span>
+                                                                {cName}
+                                                            </p>
+                                                            {!isPending && booking.customer?.phone && (
+                                                                <p className="text-sm text-primary-600 font-semibold flex items-center gap-1.5 mt-0.5">
+                                                                    <span className="material-symbols-outlined text-[16px]">call</span>
+                                                                    {booking.customer.phone}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                        <span className={`px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider ${isPending ? "bg-amber-50 text-amber-600" : "bg-emerald-50 text-emerald-600"}`}>
+                                                            {isPending ? "Pending" : "Upcoming"}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="flex flex-wrap gap-4 text-sm text-gray-600 mt-3">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="material-symbols-outlined text-[16px] text-gray-400">calendar_today</span>
+                                                            {formatDateTime(bDate)}
+                                                        </div>
+                                                        {pEst && (
+                                                            <div className="flex items-center gap-1.5">
+                                                                <span className="material-symbols-outlined text-[16px] text-gray-400">payments</span>
+                                                                ₹{Number(pEst).toLocaleString("en-IN")}
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {booking.note && (
+                                                        <p className="text-sm text-gray-500 mt-3 bg-gray-50 p-3 rounded-lg italic">
+                                                            &ldquo;{booking.note}&rdquo;
+                                                        </p>
+                                                    )}
+                                                </div>
+
+                                                <div className="flex items-center gap-3">
+                                                    {isPending ? (
+                                                        <>
+                                                            <button
+                                                                onClick={() => handleRespond(bId, "ACCEPT")}
+                                                                disabled={respondingId === bId}
+                                                                className="flex-1 bg-primary-500 text-white rounded-lg h-10 px-4 text-sm font-bold hover:bg-primary-600 active:bg-primary-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                                            >
+                                                                {respondingId === bId ? (
+                                                                    <div className="size-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                                                                ) : (
+                                                                    <>
+                                                                        <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                                                                        Accept
+                                                                    </>
+                                                                )}
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setDeclineBookingId(bId)}
+                                                                disabled={respondingId === bId}
+                                                                className="px-5 h-10 border border-gray-200 text-gray-600 rounded-lg text-sm font-semibold hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors disabled:opacity-50 flex items-center gap-2"
+                                                            >
+                                                                <span className="material-symbols-outlined text-[18px]">close</span>
+                                                                Decline
+                                                            </button>
+                                                        </>
                                                     ) : (
                                                         <>
-                                                            <span className="material-symbols-outlined text-[18px]">check_circle</span>
-                                                            Accept
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Enter OTP"
+                                                                maxLength={6}
+                                                                value={otpInputs[bId] || ""}
+                                                                onChange={(e) => handleOtpChange(bId, e.target.value)}
+                                                                className="flex-1 h-10 border border-gray-300 rounded-lg px-3 text-center tracking-widest font-mono font-bold focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
+                                                            />
+                                                            <button
+                                                                onClick={() => handleComplete(bId)}
+                                                                disabled={respondingId === bId || !otpInputs[bId]}
+                                                                className="bg-emerald-500 text-white rounded-lg h-10 px-4 text-sm font-bold hover:bg-emerald-600 active:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                                                            >
+                                                                {respondingId === bId ? (
+                                                                    <div className="size-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                                                                ) : (
+                                                                    <>
+                                                                        <span className="material-symbols-outlined text-[18px]">done_all</span>
+                                                                        Complete Job
+                                                                    </>
+                                                                )}
+                                                            </button>
                                                         </>
                                                     )}
-                                                </button>
-                                                <button
-                                                    onClick={() => handleRespond(booking.bookingId, "DECLINE")}
-                                                    disabled={respondingId === booking.bookingId}
-                                                    className="px-5 h-10 border border-gray-200 text-gray-600 rounded-lg text-sm font-semibold hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors disabled:opacity-50 flex items-center gap-2"
-                                                >
-                                                    <span className="material-symbols-outlined text-[18px]">close</span>
-                                                    Decline
-                                                </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))
+                                    )
+                                })
                             )}
                         </div>
 
@@ -374,6 +536,56 @@ export default function ProviderDashboard() {
                     </div>
                 </div>
             </main>
+
+            {/* Decline Reason Modal */}
+            {declineBookingId && (
+                <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+                    <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl relative animate-scale-up">
+                        <button
+                            onClick={() => { setDeclineBookingId(null); setDeclineReason(""); }}
+                            className="absolute top-4 right-4 text-gray-400 hover:bg-gray-100 hover:text-gray-900 rounded-full p-1 transition"
+                        >
+                            <span className="material-symbols-outlined">close</span>
+                        </button>
+
+                        <div className="flex items-center gap-3 mb-4 text-red-600">
+                            <span className="material-symbols-outlined text-3xl">cancel</span>
+                            <h3 className="text-xl font-bold text-gray-900">Decline Booking</h3>
+                        </div>
+
+                        <p className="text-gray-600 text-sm mb-4">
+                            Please provide a reason for declining this request. This helps customers understand why their booking wasn't accepted.
+                        </p>
+
+                        <textarea
+                            value={declineReason}
+                            onChange={(e) => setDeclineReason(e.target.value)}
+                            placeholder="I'm currently booked out for the day..."
+                            className="w-full border border-gray-300 rounded-xl p-3 h-32 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none mb-4"
+                        />
+
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                onClick={() => { setDeclineBookingId(null); setDeclineReason(""); }}
+                                className="px-5 py-2 text-gray-600 font-semibold hover:bg-gray-100 rounded-lg transition"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    handleRespond(declineBookingId, "DECLINE", declineReason);
+                                    setDeclineBookingId(null);
+                                    setDeclineReason("");
+                                }}
+                                disabled={!declineReason.trim()}
+                                className="px-5 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 disabled:opacity-50 transition"
+                            >
+                                Confirm Decline
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
