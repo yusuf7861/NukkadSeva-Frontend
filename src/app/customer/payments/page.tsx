@@ -1,24 +1,59 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import { CreditCard, Download, Plus, Trash2, DollarSign, Calendar, Wallet } from "lucide-react";
+import api from "@/lib/api";
 
-const paymentMethods = [
-    { id: 1, type: "card", brand: "Visa", last4: "4242", expiry: "12/28", isDefault: true },
-    { id: 2, type: "card", brand: "Mastercard", last4: "5555", expiry: "06/27", isDefault: false },
-    { id: 3, type: "upi", upiId: "user@upi", isDefault: false },
-];
+type PaymentMethodType = {
+    id: string;
+    type: string;
+    brand: string;
+    last4: string;
+    expiry: string;
+    upiId: string;
+    isDefault: boolean;
+};
 
-const transactions = [
-    { id: 1, service: "Plumbing Repair", provider: "Rajesh Kumar", date: "Feb 5", amount: 599, status: "Completed", invoiceId: "INV-234" },
-    { id: 2, service: "Electrical Work", provider: "Amit Singh", date: "Feb 3", amount: 899, status: "Completed", invoiceId: "INV-221" },
-    { id: 3, service: "House Painting", provider: "Priya Sharma", date: "Feb 10", amount: 2499, status: "Pending", invoiceId: "INV-256" },
-    { id: 4, service: "AC Servicing", provider: "Deepak Verma", date: "Jan 28", amount: 499, status: "Refunded", invoiceId: "INV-198" },
-];
+type TransactionType = {
+    id: string;
+    service: string;
+    provider: string;
+    date: string;
+    amount: number;
+    status: string;
+    invoiceId: string;
+};
 
 export default function PaymentsPage() {
     const [activeTab, setActiveTab] = useState<"transactions" | "methods">("transactions");
+    const [transactions, setTransactions] = useState<TransactionType[]>([]);
+    const [paymentMethods, setPaymentMethods] = useState<PaymentMethodType[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [txRes, methodsRes] = await Promise.all([
+                    api.get("/payments/customer/transactions"),
+                    api.get("/payments/customer/methods")
+                ]);
+                setTransactions(txRes.data);
+                setPaymentMethods(methodsRes.data);
+            } catch (error) {
+                console.error("Failed to fetch payments data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    // Derived stats
+    const totalSpent = transactions.filter(t => t.status !== "Refunded").reduce((sum, t) => sum + t.amount, 0);
+    const pendingAmount = transactions.filter(t => t.status === "PENDING").reduce((sum, t) => sum + t.amount, 0);
+
 
     return (
         <div className="flex min-h-screen bg-gray-50">
@@ -35,14 +70,14 @@ export default function PaymentsPage() {
                         <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mb-2">
                             <DollarSign className="w-4 h-4 text-green-600" />
                         </div>
-                        <p className="text-lg font-bold text-gray-900">₹12,450</p>
+                        <p className="text-lg font-bold text-gray-900">₹{totalSpent}</p>
                         <p className="text-xs text-gray-500">Total Spent</p>
                     </div>
                     <div className="bg-white rounded-lg p-3 md:p-4 shadow-sm">
                         <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mb-2">
                             <Calendar className="w-4 h-4 text-blue-600" />
                         </div>
-                        <p className="text-lg font-bold text-gray-900">₹2,499</p>
+                        <p className="text-lg font-bold text-gray-900">₹{pendingAmount}</p>
                         <p className="text-xs text-gray-500">Pending</p>
                     </div>
                     <div className="bg-white rounded-lg p-3 md:p-4 shadow-sm">
@@ -64,7 +99,11 @@ export default function PaymentsPage() {
                     </button>
                 </div>
 
-                {activeTab === "transactions" ? (
+                {loading ? (
+                    <div className="flex justify-center items-center py-12">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                    </div>
+                ) : activeTab === "transactions" ? (
                     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
@@ -100,6 +139,13 @@ export default function PaymentsPage() {
                                             </td>
                                         </tr>
                                     ))}
+                                    {transactions.length === 0 && (
+                                        <tr>
+                                            <td colSpan={6} className="px-3 py-6 text-center text-gray-500 text-sm">
+                                                No transactions found.
+                                            </td>
+                                        </tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>
@@ -130,6 +176,11 @@ export default function PaymentsPage() {
                                 <button className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                             </div>
                         ))}
+                        {paymentMethods.length === 0 && (
+                            <div className="bg-white rounded-lg p-8 text-center text-sm text-gray-500">
+                                No saved payment methods found.
+                            </div>
+                        )}
                         <button className="w-full bg-white rounded-lg p-4 border-2 border-dashed border-gray-300 flex items-center justify-center text-sm text-gray-600 hover:border-primary-500 hover:text-primary-500">
                             <Plus className="w-4 h-4 mr-2" />Add Payment Method
                         </button>

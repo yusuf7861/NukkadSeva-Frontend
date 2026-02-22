@@ -7,29 +7,44 @@ import Link from "next/link";
 import api from "@/lib/api";
 import toast from "react-hot-toast";
 import { useBookingSocket, BookingNotification } from "@/hooks/useBookingSocket";
+import { ProviderDashboardResponse } from "@/types/backend";
 
 export default function ProviderDashboard() {
     const { user } = useAuth();
     const token = user?.token || null;
     const { isConnected, newBookings, removeBooking } = useBookingSocket(token);
 
+    const [dashboardData, setDashboardData] = useState<ProviderDashboardResponse | null>(null);
     const [pendingBookings, setPendingBookings] = useState<BookingNotification[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [respondingId, setRespondingId] = useState<string | null>(null);
 
-    // Fetch existing pending bookings on mount
+    // Fetch existing dashboard on mount
     useEffect(() => {
-        const fetchPendingBookings = async () => {
+        const fetchDashboard = async () => {
             try {
-                const res = await api.get("/booking/provider/pending");
-                setPendingBookings(res.data);
+                const res = await api.get<ProviderDashboardResponse>("/provider/dashboard");
+                setDashboardData(res.data);
+
+                // Map the backend DTO to the BookingNotification interface for the feed
+                const mappedPending = res.data.pendingBookings.map((b) => ({
+                    bookingId: b.bookingId,
+                    customerName: b.customerName,
+                    serviceType: b.serviceType,
+                    bookingDateTime: b.bookingDateTime,
+                    priceEstimate: b.priceEstimate,
+                    note: b.note,
+                    status: b.status,
+                    createdAt: b.createdAt,
+                }));
+                setPendingBookings(mappedPending);
             } catch (err) {
-                console.error("Failed to fetch pending bookings:", err);
+                console.error("Failed to fetch dashboard:", err);
             } finally {
                 setIsLoading(false);
             }
         };
-        fetchPendingBookings();
+        fetchDashboard();
     }, []);
 
     // Merge real-time bookings into the list and show a toast
@@ -151,7 +166,7 @@ export default function ProviderDashboard() {
                                 <span className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Pending</span>
                                 <span className="text-amber-500 material-symbols-outlined text-xl">pending_actions</span>
                             </div>
-                            <p className="text-2xl font-bold tracking-tight">{pendingBookings.length}</p>
+                            <p className="text-2xl font-bold tracking-tight">{dashboardData?.pendingRequestsCount || pendingBookings.length || 0}</p>
                             <p className="text-amber-500 text-xs font-medium">Needs response</p>
                         </div>
                         <div className="bg-white p-5 rounded-xl border border-gray-200 flex flex-col gap-1.5">
@@ -159,28 +174,21 @@ export default function ProviderDashboard() {
                                 <span className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Total Earnings</span>
                                 <span className="text-primary-500 material-symbols-outlined text-xl">currency_exchange</span>
                             </div>
-                            <p className="text-2xl font-bold tracking-tight">₹12,450</p>
-                            <p className="text-emerald-500 text-xs font-medium flex items-center gap-1">
-                                <span className="material-symbols-outlined text-[14px]">trending_up</span> +12%
-                            </p>
+                            <p className="text-2xl font-bold tracking-tight">₹{dashboardData?.totalEarnings?.toLocaleString("en-IN") || 0}</p>
                         </div>
                         <div className="bg-white p-5 rounded-xl border border-gray-200 flex flex-col gap-1.5">
                             <div className="flex justify-between items-start">
                                 <span className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Jobs Done</span>
                                 <span className="text-primary-500 material-symbols-outlined text-xl">task_alt</span>
                             </div>
-                            <p className="text-2xl font-bold tracking-tight">148</p>
-                            <p className="text-emerald-500 text-xs font-medium flex items-center gap-1">
-                                <span className="material-symbols-outlined text-[14px]">trending_up</span> +5 new
-                            </p>
+                            <p className="text-2xl font-bold tracking-tight">{dashboardData?.completedJobs || 0}</p>
                         </div>
                         <div className="bg-white p-5 rounded-xl border border-gray-200 flex flex-col gap-1.5">
                             <div className="flex justify-between items-start">
                                 <span className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Rating</span>
                                 <span className="text-amber-400 material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                             </div>
-                            <p className="text-2xl font-bold tracking-tight">4.9</p>
-                            <p className="text-gray-400 text-xs font-medium">112 reviews</p>
+                            <p className="text-2xl font-bold tracking-tight">{dashboardData?.averageRating?.toFixed(1) || "0.0"}</p>
                         </div>
                     </div>
 

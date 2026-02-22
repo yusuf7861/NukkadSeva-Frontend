@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
@@ -10,16 +11,17 @@ import { Search, MapPin, Filter, Star, Grid, List } from "lucide-react";
 
 const categories = ["All", "Plumbing", "Electrical", "Painting", "Cleaning", "Carpentry", "AC Repair"];
 
-export default function ProvidersPage() {
-    const [providers, setProviders] = useState<DashboardProviderDto[]>([]);
-    const [selectedCategory, setSelectedCategory] = useState("All");
+function ProvidersContent() {
+    const searchParams = useSearchParams();
+    const [services, setServices] = useState<any[]>([]);
+    const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "All");
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-    const [searchQuery, setSearchQuery] = useState("");
+    const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
     const [showFilters, setShowFilters] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [citiesData, setCitiesData] = useState<PublicCityResponse[]>([]);
-    const [selectedCity, setSelectedCity] = useState("");
-    const [selectedPincode, setSelectedPincode] = useState("");
+    const [selectedCity, setSelectedCity] = useState(searchParams.get("city") || "");
+    const [selectedPincode, setSelectedPincode] = useState(searchParams.get("pincode") || "");
 
     // Fetch cities on mount
     useEffect(() => {
@@ -47,10 +49,10 @@ export default function ProvidersPage() {
     }, [selectedCity]);
 
     useEffect(() => {
-        fetchProviders();
+        fetchServices();
     }, [selectedCategory, selectedCity, selectedPincode]);
 
-    const fetchProviders = async () => {
+    const fetchServices = async () => {
         setIsLoading(true);
         try {
             const params: any = {};
@@ -58,21 +60,21 @@ export default function ProvidersPage() {
             if (selectedCity) params.city = selectedCity;
             if (selectedPincode) params.pincode = selectedPincode;
 
-            const { data } = await api.get<{ providers: DashboardProviderDto[] }>("/public/providers", { params });
-            setProviders(data.providers || []);
+            const { data } = await api.get<any[]>("/services/search", { params });
+            setServices(data || []);
         } catch (error) {
-            console.error("Failed to fetch providers", error);
-            setProviders([]);
+            console.error("Failed to fetch services", error);
+            setServices([]);
         } finally {
             setIsLoading(false);
         }
     };
 
-    const filteredProviders = providers.filter((p) => {
+    const filteredServices = services.filter((s) => {
         // Client-side search and filtering
-        const matchesSearch = (p.businessName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (p.fullName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (p.serviceCategory || "").toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch = (s.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (s.providerName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (s.category || "").toLowerCase().includes(searchQuery.toLowerCase());
         return matchesSearch;
     });
 
@@ -156,7 +158,7 @@ export default function ProvidersPage() {
                     {/* Results */}
                     <div className="flex-1">
                         <div className="flex items-center justify-between mb-3">
-                            <p className="text-xs text-gray-600"><span className="font-medium text-gray-900">{filteredProviders.length}</span> providers</p>
+                            <p className="text-xs text-gray-600"><span className="font-medium text-gray-900">{filteredServices.length}</span> services</p>
                             <div className="flex items-center space-x-2">
                                 <select className="px-2 py-1.5 border border-gray-300 rounded text-xs">
                                     <option>Recommended</option>
@@ -178,26 +180,30 @@ export default function ProvidersPage() {
                             <div className="text-center py-10">Loading...</div>
                         ) : (
                             <div className={viewMode === "grid" ? "grid grid-cols-2 md:grid-cols-3 gap-3" : "space-y-3"}>
-                                {filteredProviders.length > 0 ? (
-                                    filteredProviders.map((provider) => (
-                                        <Link key={provider.id} href={`/providers/${provider.id}`} className={`bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow ${viewMode === "list" ? "flex items-center p-3" : "p-3"}`}>
+                                {filteredServices.length > 0 ? (
+                                    filteredServices.map((service) => (
+                                        <Link key={service.id} href={`/providers/${service.providerId}`} className={`bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow ${viewMode === "list" ? "flex items-center p-3" : "p-3"}`}>
                                             <div className={viewMode === "list" ? "flex items-center flex-1" : ""}>
-                                                <img src={provider.profilePicture || "https://randomuser.me/api/portraits/men/1.jpg"} alt={provider.fullName} className={`rounded-full object-cover ${viewMode === "list" ? "w-12 h-12 mr-3" : "w-14 h-14 mx-auto mb-2"}`} />
                                                 <div className={viewMode === "list" ? "flex-1" : "text-center"}>
                                                     <div className="flex items-center justify-center gap-1 mb-0.5">
-                                                        <h3 className="text-sm font-semibold text-gray-900 truncate">{provider.businessName || provider.fullName}</h3>
+                                                        <h3 className="text-sm font-semibold text-gray-900 truncate">{service.name}</h3>
                                                     </div>
-                                                    <p className="text-xs text-gray-500 mb-1">{provider.serviceCategory}</p>
+                                                    <p className="text-xs text-gray-500 mb-1">{service.category}</p>
                                                     <div className="flex items-center justify-center gap-1 mb-1">
-                                                        <span className="text-xs text-gray-500">{provider.experience} Yrs Exp.</span>
+                                                        <span className="text-xs text-gray-700 font-medium">₹{service.price}</span>
+                                                        <span className="text-xs text-gray-400">|</span>
+                                                        <span className="text-xs text-gray-500">{service.durationMinutes} mins</span>
                                                     </div>
-                                                    <p className="text-xs text-gray-500"><MapPin className="w-3 h-3 inline" />{provider.serviceArea}</p>
+                                                    <p className="text-xs text-gray-500 mt-2 border-t pt-2 max-w-xs mx-auto truncate">By: {service.providerName}</p>
+                                                    {service.providerVerified && (
+                                                        <span className="inline-flex items-center gap-1 text-[10px] text-primary-600 font-medium mt-1 bg-primary-50 px-1.5 py-0.5 rounded">Verified Provider</span>
+                                                    )}
                                                 </div>
                                             </div>
                                         </Link>
                                     ))
                                 ) : (
-                                    <div className="col-span-full text-center py-10 text-gray-500">No providers found.</div>
+                                    <div className="col-span-full text-center py-10 text-gray-500">No services found.</div>
                                 )}
                             </div>
                         )}
@@ -207,5 +213,13 @@ export default function ProvidersPage() {
 
             <Footer />
         </div>
+    );
+}
+
+export default function ProvidersPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading providers...</div>}>
+            <ProvidersContent />
+        </Suspense>
     );
 }

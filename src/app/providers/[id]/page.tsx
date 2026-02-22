@@ -14,8 +14,9 @@ export default function ProviderDetailPage({ params }: { params: { id: string } 
     const router = useRouter();
     const { user } = useAuth();
     const [provider, setProvider] = useState<DashboardProviderDto | null>(null);
+    const [services, setServices] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedService, setSelectedService] = useState<{ name: string, price: number, type: ServiceType } | null>(null);
+    const [selectedService, setSelectedService] = useState<{ name: string, price: number, type: ServiceType, durationMinutes?: number } | null>(null);
     const [selectedDate, setSelectedDate] = useState("");
     const [selectedTime, setSelectedTime] = useState("");
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.CASH_AFTER_SERVICE);
@@ -63,12 +64,31 @@ export default function ProviderDetailPage({ params }: { params: { id: string } 
             });
             const found = data.providers.find((p: DashboardProviderDto) => p.id === Number(params.id));
             setProvider(found || null);
-            if (found) {
-                const services = getServicesForCategory(found.serviceCategory);
-                setSelectedService(services[0]);
+
+            // Fetch actual services for this provider
+            const servicesResponse = await api.get<any[]>("/services/search", {
+                params: { providerId: params.id }
+            });
+
+            if (servicesResponse.data && servicesResponse.data.length > 0) {
+                const fetchedServices = servicesResponse.data.map(s => ({
+                    id: s.id,
+                    name: s.name,
+                    price: s.price,
+                    type: s.category as ServiceType,
+                    durationMinutes: s.durationMinutes,
+                    description: s.description
+                }));
+                setServices(fetchedServices);
+                setSelectedService(fetchedServices[0]);
+            } else if (found) {
+                // Fallback to mock services if no active services exist
+                const mockServices = getServicesForCategory(found.serviceCategory);
+                setServices(mockServices);
+                setSelectedService(mockServices[0]);
             }
         } catch (error) {
-            console.error("Failed to fetch provider", error);
+            console.error("Failed to fetch provider details", error);
         } finally {
             setLoading(false);
         }
@@ -109,8 +129,6 @@ export default function ProviderDetailPage({ params }: { params: { id: string } 
 
     if (loading) return <div className="p-10 text-center">Loading provider details...</div>;
     if (!provider) return <div className="p-10 text-center">Provider not found</div>;
-
-    const services = getServicesForCategory(provider.serviceCategory);
     // Mock availability
     const availability = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"];
 
@@ -161,6 +179,7 @@ export default function ProviderDetailPage({ params }: { params: { id: string } 
                                     <div key={s.name} onClick={() => setSelectedService(s)} className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${selectedService?.name === s.name ? "border-primary-500 bg-primary-50" : "border-gray-200 hover:bg-gray-50"}`}>
                                         <div>
                                             <p className="text-sm font-medium text-gray-900">{s.name}</p>
+                                            {s.durationMinutes && <p className="text-xs text-gray-500">{s.durationMinutes} mins</p>}
                                         </div>
                                         <p className="text-sm font-semibold text-primary-500">₹{s.price}</p>
                                     </div>

@@ -42,7 +42,7 @@ export function useBookingSocket(token: string | null): UseBookingSocketResult {
 
         const client = new Client({
             // SockJS factory for the WebSocket transport
-            webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
+            webSocketFactory: () => new SockJS("http://10.38.28.45:8080/ws"),
 
             // STOMP headers sent on CONNECT frame
             connectHeaders: {

@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
-import { ArrowLeft, Upload, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { ArrowLeft, Loader2, CheckCircle, AlertCircle, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import { PublicCityResponse } from "@/types/backend";
 
 export default function CreateServicePage() {
     const router = useRouter();
@@ -14,13 +15,16 @@ export default function CreateServicePage() {
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
 
+    const [citiesData, setCitiesData] = useState<PublicCityResponse[]>([]);
+    const [selectedCity, setSelectedCity] = useState("");
+
     const [formData, setFormData] = useState({
         name: "",
         description: "",
         category: "",
         price: "",
         durationMinutes: "",
-        pincodes: "",
+        pincodes: [] as string[],
     });
 
     const categories = [
@@ -36,12 +40,47 @@ export default function CreateServicePage() {
         "Moving & Packing"
     ];
 
+    useEffect(() => {
+        const fetchCities = async () => {
+            try {
+                const { data } = await api.get<PublicCityResponse[]>("/public/providers/cities");
+                setCitiesData(data);
+            } catch (error) {
+                console.error("Failed to fetch cities", error);
+            }
+        };
+        fetchCities();
+    }, []);
+
+    // Derive pincodes from the selected city
+    const availablePincodes = useMemo(() => {
+        if (!selectedCity) return [];
+        const city = citiesData.find((c) => c.cityName === selectedCity);
+        return city?.pincodes || [];
+    }, [selectedCity, citiesData]);
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
             [name]: value
         }));
+    };
+
+    const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedCity(e.target.value);
+        setFormData(prev => ({ ...prev, pincodes: [] })); // clear pincodes if city changes
+    };
+
+    const handlePincodeToggle = (pincode: string) => {
+        setFormData(prev => {
+            const isSelected = prev.pincodes.includes(pincode);
+            if (isSelected) {
+                return { ...prev, pincodes: prev.pincodes.filter(p => p !== pincode) };
+            } else {
+                return { ...prev, pincodes: [...prev.pincodes, pincode] };
+            }
+        });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -62,7 +101,7 @@ export default function CreateServicePage() {
                 price: parseFloat(formData.price),
                 durationMinutes: parseInt(formData.durationMinutes),
                 isActive: true,
-                pincodes: formData.pincodes.split(",").map(p => p.trim()).filter(p => p)
+                pincodes: formData.pincodes
             });
             setSuccess(true);
             setTimeout(() => {
@@ -211,20 +250,66 @@ export default function CreateServicePage() {
                             </div>
                         </div>
 
-                        <div>
-                            <label htmlFor="pincodes" className="block text-sm font-medium text-gray-700 mb-1">
-                                Serviceable Pincodes <span className="text-gray-400 text-xs">(Comma separated)</span>
-                            </label>
-                            <input
-                                type="text"
-                                id="pincodes"
-                                name="pincodes"
-                                value={formData.pincodes}
-                                onChange={handleChange}
-                                placeholder="e.g. 110001, 110002, 110003"
-                                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-primary-100 focus:border-primary-500 outline-none transition"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">Leave empty if service is available in all areas of your city.</p>
+                        {/* Serviceable Locations */}
+                        <div className="pt-4 mt-6 border-t border-gray-100 space-y-4">
+                            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                                <MapPin className="w-5 h-5 text-primary-500" /> Service Location
+                            </h2>
+                            <p className="text-sm text-gray-500">Pick where you can offer this service.</p>
+
+                            <div className="md:w-1/2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    City
+                                </label>
+                                <div className="relative">
+                                    <select
+                                        value={selectedCity}
+                                        onChange={handleCityChange}
+                                        className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-primary-100 focus:border-primary-500 outline-none transition appearance-none bg-white"
+                                    >
+                                        <option value="">Select a city</option>
+                                        {citiesData.map((city) => (
+                                            <option key={city.cityName} value={city.cityName}>{city.cityName}</option>
+                                        ))}
+                                    </select>
+                                    <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
+                                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {selectedCity && availablePincodes.length > 0 && (
+                                <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50/50">
+                                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                                        Select Area Pincodes <span className="text-xs text-gray-500 font-normal">(Leave all unchecked to service ALL areas in {selectedCity})</span>
+                                    </label>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                        {availablePincodes.map((pin) => (
+                                            <label
+                                                key={pin.pincode}
+                                                className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${formData.pincodes.includes(pin.pincode)
+                                                        ? 'border-primary-500 bg-primary-50'
+                                                        : 'border-gray-200 bg-white hover:border-gray-300'
+                                                    }`}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={formData.pincodes.includes(pin.pincode)}
+                                                    onChange={() => handlePincodeToggle(pin.pincode)}
+                                                    className="mt-0.5 w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                                                />
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm font-bold text-gray-900">{pin.pincode}</span>
+                                                    <span className="text-xs text-gray-500">{pin.areaName}</span>
+                                                </div>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                         </div>
                     </div>
 

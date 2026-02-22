@@ -67,7 +67,7 @@ export default function HomePage() {
         if (selectedCity) params.append("city", selectedCity);
         if (selectedPincode) params.append("pincode", selectedPincode);
         if (searchTerm) params.append("search", searchTerm);
-        router.push(`/services${params.toString() ? `?${params.toString()}` : ""}`);
+        router.push(`/providers${params.toString() ? `?${params.toString()}` : ""}`);
     };
 
     return (
@@ -164,7 +164,7 @@ export default function HomePage() {
                         {services.map((service) => (
                             <Link
                                 key={service.name}
-                                href="/providers"
+                                href={`/providers?category=${service.name}`}
                                 className={`${service.color} rounded-lg p-3 md:p-4 text-center hover:shadow-md transition-shadow`}
                             >
                                 <span className="text-2xl md:text-3xl block mb-1">{service.icon}</span>

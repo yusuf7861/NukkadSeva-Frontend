@@ -162,3 +162,39 @@ export interface PublicCityResponse {
     state: string;
     pincodes: PincodeInfo[];
 }
+
+export interface BookingItem {
+    id: string;
+    serviceName: string;
+    providerName: string;
+    bookingDate: string;
+    status: string;
+    amount: number;
+}
+
+export interface CustomerDashboardResponse {
+    totalBookings: number;
+    totalSpent: number;
+    pendingBookings: number;
+    averageRating: number;
+    recentBookings: BookingItem[];
+}
+
+export interface PendingBookingItem {
+    bookingId: string;
+    customerName: string;
+    serviceType: string;
+    bookingDateTime: string;
+    priceEstimate: number;
+    note: string;
+    status: string;
+    createdAt: string;
+}
+
+export interface ProviderDashboardResponse {
+    totalEarnings: number;
+    completedJobs: number;
+    pendingRequestsCount: number;
+    averageRating: number;
+    pendingBookings: PendingBookingItem[];
+}
