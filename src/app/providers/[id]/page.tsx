@@ -71,14 +71,26 @@ export default function ProviderDetailPage({ params }: { params: { id: string } 
             });
 
             if (servicesResponse.data && servicesResponse.data.length > 0) {
-                const fetchedServices = servicesResponse.data.map(s => ({
-                    id: s.id,
-                    name: s.name,
-                    price: s.price,
-                    type: s.category as ServiceType,
-                    durationMinutes: s.durationMinutes,
-                    description: s.description
-                }));
+                const fetchedServices = servicesResponse.data.map(s => {
+                    let mappedType = ServiceType.REPAIRS;
+                    const cat = (s.category || "").trim().toUpperCase();
+                    if (cat === "PLUMBING") mappedType = ServiceType.PLUMBING;
+                    else if (cat === "CLEANING") mappedType = ServiceType.CLEANING;
+                    else if (cat === "ELECTRICAL") mappedType = ServiceType.ELECTRICAL;
+                    else if (cat === "PAINTING") mappedType = ServiceType.PAINTING;
+                    else if (cat === "APPLIANCE REPAIR") mappedType = ServiceType.APPLIANCE_REPAIRS;
+                    else if (cat === "CARPENTRY") mappedType = ServiceType.CARPENTRY;
+                    else if (cat === "BEAUTY & WELLNESS" || cat === "PEST CONTROL" || cat === "GARDENING" || cat === "MOVING & PACKING") mappedType = ServiceType.REPAIRS;
+
+                    return {
+                        id: s.id,
+                        name: s.name,
+                        price: s.price,
+                        type: mappedType,
+                        durationMinutes: s.durationMinutes,
+                        description: s.description
+                    };
+                });
                 setServices(fetchedServices);
                 setSelectedService(fetchedServices[0]);
             } else if (found) {
