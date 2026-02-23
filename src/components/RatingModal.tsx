@@ -2,24 +2,42 @@
 
 import { useState } from "react";
 import { X, Star } from "lucide-react";
+import api from "@/lib/api";
+import toast from "react-hot-toast";
 
 interface RatingModalProps {
     isOpen: boolean;
     onClose: () => void;
     providerName: string;
     serviceName: string;
+    bookingId: string;
+    onSuccess: () => void;
 }
 
-export default function RatingModal({ isOpen, onClose, providerName, serviceName }: RatingModalProps) {
+export default function RatingModal({ isOpen, onClose, providerName, serviceName, bookingId, onSuccess }: RatingModalProps) {
     const [rating, setRating] = useState(0);
     const [hoveredRating, setHoveredRating] = useState(0);
     const [review, setReview] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     if (!isOpen) return null;
 
-    const handleSubmit = () => {
-        console.log({ rating, review, providerName, serviceName });
-        onClose();
+    const handleSubmit = async () => {
+        setIsSubmitting(true);
+        try {
+            await api.post("/reviews", {
+                bookingId,
+                rating,
+                comment: review
+            });
+            toast.success("Review submitted! Thank you for your feedback.");
+            onSuccess();
+            onClose();
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Failed to submit review");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -60,8 +78,10 @@ export default function RatingModal({ isOpen, onClose, providerName, serviceName
                 </div>
 
                 <div className="flex gap-2 p-4 border-t">
-                    <button onClick={onClose} className="flex-1 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">Cancel</button>
-                    <button onClick={handleSubmit} disabled={rating === 0} className="flex-1 py-2 bg-primary-500 text-white rounded-lg text-sm font-medium hover:bg-primary-600 disabled:opacity-50">Submit</button>
+                    <button onClick={onClose} disabled={isSubmitting} className="flex-1 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50">Cancel</button>
+                    <button onClick={handleSubmit} disabled={rating === 0 || isSubmitting} className="flex-1 py-2 bg-primary-500 text-white rounded-lg text-sm font-medium hover:bg-primary-600 disabled:opacity-50 flex items-center justify-center gap-2">
+                        {isSubmitting ? <span className="w-4 h-4 rounded-full border-2 border-white/50 border-t-white animate-spin"></span> : "Submit"}
+                    </button>
                 </div>
             </div>
         </div>

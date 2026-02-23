@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: "http://10.38.28.45:8080/api", // Adjust if backend runs on different port
+    baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api", // Adjust if backend runs on different port
     withCredentials: true,
     headers: {
         "Content-Type": "application/json",

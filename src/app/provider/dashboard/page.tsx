@@ -171,21 +171,21 @@ export default function ProviderDashboard() {
             <ProviderSidebar />
             <main className="flex-1 overflow-y-auto scroll-smooth">
                 {/* Top Bar */}
-                <header className="h-16 border-b border-gray-200 bg-white/80 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between px-4 lg:px-8">
-                    <div className="flex items-center gap-2 pl-12 lg:pl-0">
-                        <span className="text-gray-400 text-sm hidden md:inline">Welcome back,</span>
-                        <span className="font-bold text-gray-900 hidden md:inline">{user?.name || user?.username || "Provider"}</span>
-                        <span className="font-bold text-gray-900 md:hidden">Dashboard</span>
+                <header className="h-16 border-b border-gray-200 bg-white/80 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between px-3 md:px-4 lg:px-8">
+                    <div className="flex items-center gap-2 pl-10 md:pl-12 lg:pl-0 min-w-0">
+                        <span className="text-gray-400 text-sm hidden md:inline truncate">Welcome back,</span>
+                        <span className="font-bold text-gray-900 hidden md:inline truncate">{user?.name || user?.username || "Provider"}</span>
+                        <span className="font-bold text-gray-900 md:hidden truncate">Dashboard</span>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                         {/* Live indicator */}
-                        <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${isConnected
+                        <div className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-full text-xs font-bold transition-all ${isConnected
                             ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
                             : "bg-gray-100 text-gray-400 border border-gray-200"
                             }`}>
-                            <span className={`inline-block size-2 rounded-full ${isConnected ? "bg-emerald-500 animate-pulse" : "bg-gray-400"
+                            <span className={`inline-block size-2 shrink-0 rounded-full ${isConnected ? "bg-emerald-500 animate-pulse" : "bg-gray-400"
                                 }`} />
-                            {isConnected ? "Live" : "Offline"}
+                            <span className="hidden sm:inline">{isConnected ? "Live" : "Offline"}</span>
                         </div>
                         <div className="relative">
                             <button
@@ -202,7 +202,7 @@ export default function ProviderDashboard() {
 
                             {/* Notifications Dropdown */}
                             {isNotificationsOpen && (
-                                <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] border border-gray-100 z-50 overflow-hidden animate-fade-in origin-top-right">
+                                <div className="absolute right-0 mt-2 w-72 sm:w-80 max-w-[calc(100vw-32px)] bg-white rounded-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] border border-gray-100 z-50 overflow-hidden animate-fade-in origin-top-right">
                                     <div className="p-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
                                         <h3 className="text-sm font-bold text-gray-900">Notifications</h3>
                                         <span className="text-xs text-primary-600 font-semibold">{pendingBookings.length} New</span>
@@ -475,6 +475,96 @@ export default function ProviderDashboard() {
                                     )
                                 })
                             )}
+
+                            {/* Lower Section: Recent History & Reviews */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
+                                {/* Recent Past Services */}
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex items-center justify-between">
+                                        <h2 className="text-xl font-bold tracking-tight">Recent Past Services</h2>
+                                        <Link href="/provider/jobs/past" className="text-primary-600 text-sm font-semibold hover:underline">
+                                            View full history
+                                        </Link>
+                                    </div>
+                                    {dashboardData?.recentPastServices && dashboardData.recentPastServices.length > 0 ? (
+                                        <div className="space-y-4">
+                                            {dashboardData.recentPastServices.map((job, idx) => (
+                                                <div key={idx} className="bg-white p-4 rounded-xl border border-gray-200 flex items-center justify-between shadow-sm">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="size-10 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600">
+                                                            <span className="material-symbols-outlined text-[20px]">task_alt</span>
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="font-bold text-gray-900 text-sm">{job.serviceType.replace(/_/g, " ")}</h4>
+                                                            <p className="text-xs text-gray-500">{job.customerName}</p>
+                                                            <p className="text-[10px] text-gray-400 mt-1">{formatDateTime(job.completedAt || job.bookingDateTime)}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="font-bold text-gray-900 text-sm">
+                                                            {job.finalPrice ? `₹${job.finalPrice.toLocaleString("en-IN")}` : "—"}
+                                                        </p>
+                                                        <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full mt-1 inline-block">
+                                                            {job.status}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="bg-white p-8 rounded-xl border border-gray-200 flex flex-col items-center justify-center text-center h-full">
+                                            <span className="material-symbols-outlined text-4xl text-gray-300 mb-2">history toggle_off</span>
+                                            <p className="text-sm font-bold text-gray-600">No past services yet.</p>
+                                            <p className="text-xs text-gray-400">Complete your first job to see history here.</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Recent Reviews */}
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex items-center justify-between">
+                                        <h2 className="text-xl font-bold tracking-tight">Recent Reviews</h2>
+                                        <Link href="/provider/reviews" className="text-primary-600 text-sm font-semibold hover:underline">
+                                            View all reviews
+                                        </Link>
+                                    </div>
+                                    {dashboardData?.recentReviews && dashboardData.recentReviews.length > 0 ? (
+                                        <div className="space-y-4">
+                                            {dashboardData.recentReviews.map((review, idx) => (
+                                                <div key={idx} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-2">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex gap-1 text-amber-400">
+                                                            {[...Array(5)].map((_, i) => (
+                                                                <span key={i} className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: i < review.rating ? "'FILL' 1" : "'FILL' 0" }}>
+                                                                    star
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                        <span className="text-xs font-semibold text-gray-500">{getTimeAgo(review.createdAt)}</span>
+                                                    </div>
+                                                    {review.comment && (
+                                                        <p className="text-sm text-gray-700 italic border-l-2 border-gray-200 pl-3 my-1">
+                                                            "{review.comment}"
+                                                        </p>
+                                                    )}
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <div className="size-5 bg-gray-100 rounded-full flex items-center justify-center">
+                                                            <span className="material-symbols-outlined text-[12px] text-gray-500">person</span>
+                                                        </div>
+                                                        <p className="text-xs font-semibold text-gray-600">— {review.customerName}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="bg-white p-8 rounded-xl border border-gray-200 flex flex-col items-center justify-center text-center h-full">
+                                            <span className="material-symbols-outlined text-4xl text-gray-300 mb-2">rate_review</span>
+                                            <p className="text-sm font-bold text-gray-600">No reviews yet.</p>
+                                            <p className="text-xs text-gray-400">Deliver great service to earn your first review!</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
 
                         {/* Sidebar */}
@@ -534,6 +624,8 @@ export default function ProviderDashboard() {
                             </div>
                         </div>
                     </div>
+
+
                 </div>
             </main>
 

@@ -191,10 +191,33 @@ export interface PendingBookingItem {
     createdAt: string;
 }
 
+export interface ReviewResponseDto {
+    id: number;
+    bookingId: string;
+    customerId: number;
+    customerName: string;
+    providerId: number;
+    rating: number;
+    comment: string;
+    createdAt: string;
+}
+
+export interface PastServiceItem {
+    bookingId: string;
+    customerName: string;
+    serviceType: string;
+    bookingDateTime: string;
+    finalPrice?: number;
+    status: string;
+    completedAt: string;
+}
+
 export interface ProviderDashboardResponse {
     totalEarnings: number;
     completedJobs: number;
     pendingRequestsCount: number;
     averageRating: number;
     pendingBookings: PendingBookingItem[];
+    recentReviews?: ReviewResponseDto[];
+    recentPastServices?: PastServiceItem[];
 }

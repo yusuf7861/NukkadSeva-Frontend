@@ -25,7 +25,7 @@ export default function ProviderSidebar() {
             {/* Mobile Toggle Button */}
             <button
                 onClick={() => setIsOpen(true)}
-                className="fixed top-3 left-3 z-30 p-2 bg-white rounded-lg shadow-md lg:hidden"
+                className="fixed top-3 left-3 z-40 p-2 bg-white rounded-lg shadow-md lg:hidden"
             >
                 <span className="material-symbols-outlined text-gray-600">menu</span>
             </button>
@@ -83,7 +83,29 @@ export default function ProviderSidebar() {
                             }`}
                     >
                         <span className="material-symbols-outlined">calendar_today</span>
-                        <span className="text-sm font-medium leading-normal">My Schedule</span>
+                        <span className="text-sm font-medium leading-normal">Schedule</span>
+                    </Link>
+                    <Link
+                        href="/provider/jobs/past"
+                        onClick={() => setIsOpen(false)}
+                        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive("/provider/jobs/past")
+                            ? "bg-primary-50 text-primary-600"
+                            : "text-gray-600 hover:bg-gray-100"
+                            }`}
+                    >
+                        <span className="material-symbols-outlined">history</span>
+                        <span className="text-sm font-medium leading-normal">Job History</span>
+                    </Link>
+                    <Link
+                        href="/provider/reviews"
+                        onClick={() => setIsOpen(false)}
+                        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive("/provider/reviews")
+                            ? "bg-primary-50 text-primary-600"
+                            : "text-gray-600 hover:bg-gray-100"
+                            }`}
+                    >
+                        <span className="material-symbols-outlined">rate_review</span>
+                        <span className="text-sm font-medium leading-normal">Reviews</span>
                     </Link>
                     <Link
                         href="/provider/earnings"

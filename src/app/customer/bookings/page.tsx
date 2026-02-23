@@ -20,6 +20,7 @@ type BookingType = {
     status: string;
     amount: number;
     canRate: boolean;
+    isReviewed: boolean;
     otp: string | null;
     rejectionReason: string | null;
 };
@@ -93,7 +94,8 @@ export default function BookingsPage() {
                             b.status === 'COMPLETED' ? 'Completed' :
                                 b.status === 'REJECTED' || b.status === 'CANCELLED' ? 'Cancelled' : b.status,
                         amount: b.priceEstimate || 0,
-                        canRate: b.status === 'COMPLETED',
+                        canRate: b.status === 'COMPLETED' && !(b.isReviewed || b.reviewed),
+                        isReviewed: !!(b.isReviewed || b.reviewed),
                         otp: b.completionOtp || null,
                         rejectionReason: b.rejectionReason || null
                     };
@@ -197,28 +199,28 @@ export default function BookingsPage() {
 
                                 <div className="flex justify-end mt-3 pt-3 border-t border-gray-100 space-x-2">
                                     {booking.status === "Upcoming" && (
-                                        <>
+                                        <div className="flex w-full items-center gap-2">
                                             {booking.otp && (
-                                                <div className="flex-1 text-xs font-bold text-gray-700 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200 flex items-center gap-2">
-                                                    <span>Completion OTP:</span>
-                                                    <span className="text-lg tracking-wider text-primary-600 font-mono">{booking.otp}</span>
+                                                <div className="flex-1 text-[11px] font-bold text-gray-700 bg-gray-50 px-2 py-1.5 rounded border border-gray-200 flex items-center gap-1.5">
+                                                    <span>OTP:</span>
+                                                    <span className="text-base tracking-widest text-primary-600 font-mono">{booking.otp}</span>
                                                 </div>
                                             )}
                                             <button
                                                 onClick={() => handleCancel(booking.id)}
                                                 disabled={cancellingId === booking.id}
-                                                className="px-3 py-1.5 text-xs border border-red-300 text-red-600 rounded-lg hover:bg-red-50 disabled:opacity-50"
+                                                className="px-3 py-1.5 text-xs font-semibold border border-red-200 text-red-600 rounded-lg hover:bg-red-50 hover:border-red-300 disabled:opacity-50 transition-colors ml-auto"
                                             >
-                                                {cancellingId === booking.id ? "Cancelling..." : "Cancel"}
+                                                {cancellingId === booking.id ? "..." : "Cancel"}
                                             </button>
-                                        </>
+                                        </div>
                                     )}
                                     {booking.canRate && (
                                         <button onClick={() => { setSelectedBooking(booking); setShowRatingModal(true); }} className="px-3 py-1.5 text-xs bg-primary-500 text-white rounded-lg hover:bg-primary-600 flex items-center">
                                             <Star className="w-3 h-3 mr-1" />Rate
                                         </button>
                                     )}
-                                    {!booking.canRate && booking.status === "Completed" && (
+                                    {booking.isReviewed && (
                                         <span className="text-xs text-gray-500 flex items-center"><CheckCircle className="w-3 h-3 mr-1 text-green-500" />Rated</span>
                                     )}
                                 </div>
@@ -246,7 +248,16 @@ export default function BookingsPage() {
                 )}
 
                 {selectedBooking && (
-                    <RatingModal isOpen={showRatingModal} onClose={() => setShowRatingModal(false)} providerName={selectedBooking.provider} serviceName={selectedBooking.service} />
+                    <RatingModal
+                        isOpen={showRatingModal}
+                        onClose={() => setShowRatingModal(false)}
+                        providerName={selectedBooking.provider}
+                        serviceName={selectedBooking.service}
+                        bookingId={selectedBooking.id}
+                        onSuccess={() => {
+                            setBookings(prev => prev.map(b => b.id === selectedBooking.id ? { ...b, canRate: false, isReviewed: true } : b));
+                        }}
+                    />
                 )}
             </main>
         </div>
