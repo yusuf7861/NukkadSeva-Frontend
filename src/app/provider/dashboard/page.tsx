@@ -166,6 +166,20 @@ export default function ProviderDashboard() {
         MOVING_AND_PACKING: "local_shipping",
     };
 
+    const getTodayBookings = () => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        return activeBookings.filter(b => {
+            if (!b.bookingDateTime) return false;
+            const bDate = new Date(b.bookingDateTime);
+            bDate.setHours(0, 0, 0, 0);
+            return bDate.getTime() === today.getTime();
+        }).sort((a, b) => new Date(a.bookingDateTime).getTime() - new Date(b.bookingDateTime).getTime());
+    };
+
+    const todayBookings = getTodayBookings();
+
     return (
         <div className="flex bg-gray-50 font-sans text-gray-900 min-h-screen">
             <ProviderSidebar />
@@ -592,35 +606,37 @@ export default function ProviderDashboard() {
                                     <span className="material-symbols-outlined text-primary-500">event_note</span>
                                     Today&apos;s Schedule
                                 </h3>
-                                <div className="space-y-4">
-                                    <div className="flex gap-3">
-                                        <div className="w-1 bg-primary-500 rounded-full" />
-                                        <div>
-                                            <p className="text-xs text-gray-500 font-bold uppercase">10:00 AM</p>
-                                            <p className="text-sm font-semibold">AC Unit Maintenance</p>
-                                            <p className="text-[11px] text-gray-400 italic">Beverly Hills</p>
-                                        </div>
+
+                                {todayBookings.length === 0 ? (
+                                    <div className="py-6 flex flex-col items-center justify-center text-center bg-gray-50 rounded-lg border border-gray-100 dashed">
+                                        <span className="material-symbols-outlined text-gray-300 text-3xl mb-1">free_cancellation</span>
+                                        <p className="text-sm font-semibold text-gray-600">No jobs today</p>
+                                        <p className="text-xs text-gray-400 mt-1">Enjoy your free time!</p>
                                     </div>
-                                    <div className="flex gap-3">
-                                        <div className="w-1 bg-gray-300 rounded-full" />
-                                        <div>
-                                            <p className="text-xs text-gray-500 font-bold uppercase">01:30 PM</p>
-                                            <p className="text-sm font-semibold">Garage Door Repair</p>
-                                            <p className="text-[11px] text-gray-400 italic">Westwood</p>
-                                        </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {todayBookings.map((job) => {
+                                            const timeString = new Date(job.bookingDateTime).toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit' });
+                                            const address = job.customer?.address || "Location not provided";
+                                            return (
+                                                <div key={job.id} className="flex gap-3">
+                                                    <div className="w-1 bg-primary-500 rounded-full shrink-0" />
+                                                    <div className="min-w-0">
+                                                        <p className="text-xs text-gray-500 font-bold uppercase">{timeString}</p>
+                                                        <p className="text-sm font-semibold text-gray-900 truncate">{job.serviceType.replace(/_/g, " ")}</p>
+                                                        <p className="text-[11px] text-gray-400 italic truncate" title={address}>{address}</p>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
-                                    <div className="flex gap-3">
-                                        <div className="w-1 bg-gray-300 rounded-full" />
-                                        <div>
-                                            <p className="text-xs text-gray-500 font-bold uppercase">04:00 PM</p>
-                                            <p className="text-sm font-semibold">Lighting Installation</p>
-                                            <p className="text-[11px] text-gray-400 italic">Santa Monica</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button className="w-full mt-6 py-2 border border-gray-200 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors uppercase tracking-wider">
-                                    Full Calendar
-                                </button>
+                                )}
+
+                                <Link href="/provider/schedule" className="block mt-6">
+                                    <button className="w-full py-2 border border-gray-200 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors uppercase tracking-wider text-gray-700">
+                                        Full Calendar
+                                    </button>
+                                </Link>
                             </div>
                         </div>
                     </div>
