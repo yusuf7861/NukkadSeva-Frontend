@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
 import { User, Mail, Phone, MapPin, Edit2, Save, X, Loader2, Camera, Shield, Star, Clock } from "lucide-react";
 import Image from "next/image";
+import AddressManager from "@/components/AddressManager";
 
 import { CustomerProfileResponse, CustomerProfileUpdateRequest } from "@/types/backend";
 
@@ -283,79 +284,7 @@ export default function CustomerProfilePage() {
                             </div>
 
                             <div className="border-t border-gray-100 pt-6">
-                                <h4 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                    <MapPin className="w-4 h-4 text-primary-500" /> Address Details
-                                </h4>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="md:col-span-2">
-                                        <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wider">Street Address</label>
-                                        {isEditing ? (
-                                            <textarea
-                                                value={formData.fullAddress}
-                                                onChange={(e) => setFormData({ ...formData, fullAddress: e.target.value })}
-                                                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all resize-none"
-                                                rows={2}
-                                                placeholder="Enter your street address"
-                                            />
-                                        ) : (
-                                            <div className="p-3 bg-gray-50 rounded-lg border border-gray-100 min-h-[42px] flex items-center">
-                                                <span className="text-sm text-gray-900">{profile?.address || "No address provided"}</span>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wider">City</label>
-                                        {isEditing ? (
-                                            <input
-                                                type="text"
-                                                value={formData.city}
-                                                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                                                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
-                                                placeholder="City"
-                                            />
-                                        ) : (
-                                            <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                                                <span className="text-sm text-gray-900">{profile?.city || "-"}</span>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wider">State</label>
-                                        {isEditing ? (
-                                            <input
-                                                type="text"
-                                                value={formData.state}
-                                                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                                                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
-                                                placeholder="State"
-                                            />
-                                        ) : (
-                                            <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                                                <span className="text-sm text-gray-900">{profile?.state || "-"}</span>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wider">Pincode</label>
-                                        {isEditing ? (
-                                            <input
-                                                type="text"
-                                                value={formData.pincode}
-                                                onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
-                                                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
-                                                placeholder="Pincode"
-                                            />
-                                        ) : (
-                                            <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                                                <span className="text-sm text-gray-900">{profile?.pincode || "-"}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
+                                <AddressManager />
                             </div>
                         </div>
                     </div>

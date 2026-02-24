@@ -122,7 +122,7 @@ export default function LoginPage() {
                                 <input type="checkbox" className="mr-2 rounded" />
                                 <span className="text-slate-600">Remember me</span>
                             </label>
-                            <a href="#" className="text-primary-500 hover:text-primary-600">Forgot password?</a>
+                            <Link href={`/forgot-password?type=${userType}`} className="text-primary-500 hover:text-primary-600">Forgot password?</Link>
                         </div>
 
                         <button

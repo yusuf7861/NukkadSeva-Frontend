@@ -31,6 +31,18 @@ export interface UserRequest {
     password?: string;
 }
 
+export interface CustomerAddress {
+    id: number;
+    type: string;
+    flatName?: string;
+    area: string;
+    landmark?: string;
+    city: string;
+    state: string;
+    pincode: string;
+    default?: boolean;
+}
+
 // Response from GET /api/customer/profile
 export interface CustomerProfileResponse {
     id: number;
@@ -38,13 +50,14 @@ export interface CustomerProfileResponse {
     mobileNumber: string;
     email: string;
     photograph: string;
-    address: {
+    address?: {
         id: number;
         fullAddress: string;
         state: string;
         city: string;
         pincode: string;
     };
+    savedAddresses?: CustomerAddress[];
     createdAt: string;
     updatedAt: string;
 }
@@ -111,6 +124,7 @@ export interface BookingRequest {
     priceEstimate: number; // BigDecimal
     finalPrice: number; // BigDecimal
     paymentMethod: PaymentMethod;
+    addressId: number;
     note?: string;
 }
 
@@ -122,6 +136,16 @@ export interface ApiResponse {
 export interface LoginRequest {
     email: string;
     password?: string;
+}
+
+export interface ForgotPasswordRequest {
+    email: string;
+}
+
+export interface ResetPasswordRequest {
+    email: string;
+    otp: string;
+    newPassword: string;
 }
 
 // Duplicate AuthResponse removed

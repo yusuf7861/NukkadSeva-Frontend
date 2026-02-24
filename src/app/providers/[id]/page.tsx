@@ -9,6 +9,7 @@ import api from "@/lib/api";
 import { DashboardProviderDto, BookingRequest, ServiceType, PaymentMethod } from "@/types/backend";
 import { Star, MapPin, Phone, Clock, Shield, ChevronLeft, CheckCircle, MessageCircle, CreditCard } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import AddressSelector from "@/components/AddressSelector";
 
 export default function ProviderDetailPage({ params }: { params: { id: string } }) {
     const router = useRouter();
@@ -20,6 +21,7 @@ export default function ProviderDetailPage({ params }: { params: { id: string } 
     const [selectedDate, setSelectedDate] = useState("");
     const [selectedTime, setSelectedTime] = useState("");
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.CASH_AFTER_SERVICE);
+    const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
     const [bookingNote, setBookingNote] = useState("");
     const [isBooking, setIsBooking] = useState(false);
 
@@ -112,6 +114,10 @@ export default function ProviderDetailPage({ params }: { params: { id: string } 
             return;
         }
         if (!provider || !selectedService || !selectedDate || !selectedTime) return;
+        if (!selectedAddressId) {
+            alert("Please select or add a service address.");
+            return;
+        }
 
         setIsBooking(true);
         try {
@@ -125,6 +131,7 @@ export default function ProviderDetailPage({ params }: { params: { id: string } 
                 priceEstimate: selectedService.price,
                 finalPrice: selectedService.price, // Assuming fixed price for now
                 paymentMethod: paymentMethod,
+                addressId: selectedAddressId,
                 note: bookingNote
             };
 
@@ -228,6 +235,8 @@ export default function ProviderDetailPage({ params }: { params: { id: string } 
                                     ))}
                                 </div>
                             </div>
+
+                            <AddressSelector selectedAddressId={selectedAddressId} onSelectAddress={setSelectedAddressId} />
 
                             <div className="mb-4">
                                 <label className="block text-xs font-medium text-gray-700 mb-1">Payment Method</label>
