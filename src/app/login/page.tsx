@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
@@ -46,8 +47,9 @@ export default function LoginPage() {
             {/* Left Panel - Form */}
             <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 py-8 md:px-12 lg:px-16">
                 <div className="max-w-sm mx-auto w-full">
-                    <Link href="/" className="text-xl font-bold text-primary-500 mb-6 block">
-                        NukkadSeva
+                    <Link href="/" className="flex items-center gap-2 mb-6">
+                        <Image src="/logo.svg" alt="NukkadSeva Logo" width={32} height={32} className="object-contain" />
+                        <span className="text-xl font-bold text-primary-600">NukkadSeva</span>
                     </Link>
 
                     {/* Role Tabs */}

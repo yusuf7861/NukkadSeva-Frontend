@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState, ChangeEvent, FormEvent } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { ProviderRegistrationData } from "@/types/backend";
@@ -114,12 +115,12 @@ export default function ProviderOnboardingPage() {
             {/* Top Navigation Bar */}
             <header className="w-full border-b border-gray-200 bg-white px-6 py-4">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-primary-500 p-2 rounded-lg">
-                            <span className="material-symbols-outlined text-white">build</span>
+                    <Link href="/" className="flex items-center gap-2 group">
+                        <div className="bg-primary-50 p-2 rounded-xl group-hover:bg-primary-100 transition-colors">
+                            <Image src="/logo.svg" alt="NukkadSeva Logo" width={28} height={28} className="object-contain" />
                         </div>
-                        <h2 className="text-xl font-bold text-gray-900">ProFix Onboarding</h2>
-                    </div>
+                        <h2 className="text-xl font-extrabold tracking-tight text-gray-900 group-hover:text-primary-600 transition-colors">NukkadSeva Onboarding</h2>
+                    </Link>
                 </div>
             </header>
 

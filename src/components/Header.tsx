@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Search, MapPin, User, Menu, X, ChevronDown, LogOut, Settings, Calendar, CreditCard } from "lucide-react";
@@ -15,8 +16,9 @@ export default function Header() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6">
                 <div className="flex items-center justify-between h-14 md:h-16">
                     {/* Logo */}
-                    <Link href="/" className="flex items-center">
-                        <span className="text-lg md:text-xl font-bold text-primary-500">NukkadSeva</span>
+                    <Link href="/" className="flex items-center gap-2">
+                        <Image src="/logo.svg" alt="NukkadSeva Logo" width={32} height={32} className="object-contain" />
+                        <span className="text-lg md:text-xl font-bold text-primary-600 hidden sm:block">NukkadSeva</span>
                     </Link>
 
                     {/* Desktop Navigation */}

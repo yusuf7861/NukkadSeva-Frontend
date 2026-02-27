@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
@@ -58,8 +59,9 @@ export default function Sidebar() {
                     {/* Header */}
                     <div className="flex items-center justify-between h-14 px-3 border-b border-gray-200">
                         {!isCollapsed && (
-                            <Link href="/" className="text-lg font-bold text-primary-500">
-                                NukkadSeva
+                            <Link href="/" className="flex items-center gap-2">
+                                <Image src="/logo.svg" alt="NukkadSeva Logo" width={28} height={28} className="object-contain" />
+                                <span className="text-lg font-bold text-primary-600">NukkadSeva</span>
                             </Link>
                         )}
                         <button

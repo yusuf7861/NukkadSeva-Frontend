@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from "lucide-react";
 
 export default function Footer() {
@@ -8,7 +9,10 @@ export default function Footer() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
                     {/* Brand */}
                     <div className="col-span-2 md:col-span-1">
-                        <h3 className="text-lg font-bold text-white mb-3">NukkadSeva</h3>
+                        <div className="flex items-center gap-2 mb-3">
+                            <Image src="/logo.svg" alt="NukkadSeva Logo" width={24} height={24} className="object-contain" />
+                            <h3 className="text-lg font-bold text-white">NukkadSeva</h3>
+                        </div>
                         <p className="text-sm text-gray-400 mb-4 leading-relaxed">
                             Your trusted platform for local home services. Connect with verified professionals.
                         </p>

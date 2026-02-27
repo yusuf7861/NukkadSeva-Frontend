@@ -7,6 +7,11 @@ const nextConfig = {
                 hostname: 'nukkadseva.blob.core.windows.net',
                 pathname: '/**',
             },
+            {
+                protocol: 'https',
+                hostname: 'images.unsplash.com',
+                pathname: '/**',
+            },
         ],
     },
 };
