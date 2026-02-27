@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
-import { User, Mail, Phone, MapPin, Edit2, Save, X, Loader2, Camera, Shield, Star, Clock } from "lucide-react";
+import { User, Mail, Phone, MapPin, Edit2, Save, X, Loader2, Camera, Shield, Star, Clock, ArrowLeft } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import AddressManager from "@/components/AddressManager";
 
 import { CustomerProfileResponse, CustomerProfileUpdateRequest } from "@/types/backend";
@@ -22,6 +23,8 @@ interface CustomerProfileState {
     state: string;
     pincode: string;
     profilePicture: string;
+    activeBookingsCount: number;
+    reviewsGivenCount: number;
 }
 
 export default function CustomerProfilePage() {
@@ -60,6 +63,8 @@ export default function CustomerProfilePage() {
                 state: data.address?.state || "",
                 pincode: data.address?.pincode || "",
                 profilePicture: data.photograph || "",
+                activeBookingsCount: data.activeBookingsCount || 0,
+                reviewsGivenCount: data.reviewsGivenCount || 0,
             };
 
             setProfile(mappedProfile);
@@ -95,6 +100,8 @@ export default function CustomerProfilePage() {
                 state: data.address?.state || "",
                 pincode: data.address?.pincode || "",
                 profilePicture: data.photograph || "",
+                activeBookingsCount: data.activeBookingsCount || 0,
+                reviewsGivenCount: data.reviewsGivenCount || 0,
             };
 
             setProfile(mappedProfile);
@@ -104,6 +111,44 @@ export default function CustomerProfilePage() {
             alert("Failed to update profile. Please try again.");
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const [isUploadingPic, setIsUploadingPic] = useState(false);
+
+    const handleProfilePicChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || e.target.files.length === 0) return;
+
+        const file = e.target.files[0];
+
+        if (!file.type.startsWith("image/")) {
+            alert("Only image files are allowed.");
+            e.target.value = '';
+            return;
+        }
+        if (file.size > 204800) {
+            alert("File size must be less than 200KB.");
+            e.target.value = '';
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        setIsUploadingPic(true);
+        try {
+            await api.put("/update-profile-picture", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+            // Refresh profile to get the new picture URL
+            await fetchProfile();
+        } catch (error) {
+            console.error("Failed to upload profile picture", error);
+            alert("Failed to upload profile picture. Please try again.");
+        } finally {
+            setIsUploadingPic(false);
+            // reset input
+            e.target.value = '';
         }
     };
 
@@ -117,6 +162,15 @@ export default function CustomerProfilePage() {
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-5xl">
+            {/* Back Navigation */}
+            <Link
+                href="/customer/dashboard"
+                className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-primary-600 mb-6 transition-colors"
+            >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Dashboard
+            </Link>
+
             <div className="flex flex-col md:flex-row gap-8">
                 {/* Sidebar / Profile Card */}
                 <div className="w-full md:w-1/3 space-y-6">
@@ -138,9 +192,20 @@ export default function CustomerProfilePage() {
                                             </div>
                                         )}
                                     </div>
-                                    <button className="absolute bottom-0 right-0 p-1.5 bg-white rounded-full shadow-md border border-gray-100 text-gray-600 hover:text-primary-500 transition-colors">
-                                        <Camera className="w-4 h-4" />
+                                    <button
+                                        onClick={() => document.getElementById('profilePicInput')?.click()}
+                                        disabled={isUploadingPic}
+                                        className="absolute bottom-0 right-0 p-1.5 bg-white rounded-full shadow-md border border-gray-100 text-gray-600 hover:text-primary-500 transition-colors disabled:opacity-50"
+                                    >
+                                        {isUploadingPic ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
                                     </button>
+                                    <input
+                                        type="file"
+                                        id="profilePicInput"
+                                        className="hidden"
+                                        accept="image/*"
+                                        onChange={handleProfilePicChange}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -184,7 +249,7 @@ export default function CustomerProfilePage() {
                                 </div>
                                 <span className="text-xs text-gray-500 font-medium">Active Bookings</span>
                             </div>
-                            <p className="text-2xl font-bold text-gray-900">2</p>
+                            <p className="text-2xl font-bold text-gray-900">{profile?.activeBookingsCount ?? 0}</p>
                         </div>
                         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                             <div className="flex items-center gap-3 mb-2">
@@ -193,7 +258,7 @@ export default function CustomerProfilePage() {
                                 </div>
                                 <span className="text-xs text-gray-500 font-medium">Reviews Given</span>
                             </div>
-                            <p className="text-2xl font-bold text-gray-900">5</p>
+                            <p className="text-2xl font-bold text-gray-900">{profile?.reviewsGivenCount ?? 0}</p>
                         </div>
                     </div>
                 </div>

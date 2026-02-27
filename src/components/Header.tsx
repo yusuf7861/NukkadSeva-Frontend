@@ -52,7 +52,7 @@ export default function Header() {
                                         <div className="fixed inset-0 z-10" onClick={() => setIsProfileOpen(false)} />
                                         <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
                                             <Link
-                                                href="/dashboard"
+                                                href={user?.role === "ADMIN" ? "/admin/dashboard" : user?.role === "SERVICE_PROVIDER" || user?.role === "PROVIDER" ? "/provider/dashboard" : "/customer/dashboard"}
                                                 className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
                                                 onClick={() => setIsProfileOpen(false)}
                                             >
@@ -149,7 +149,7 @@ export default function Header() {
                                 <>
                                     <hr className="my-2" />
                                     <Link
-                                        href="/dashboard"
+                                        href={user?.role === "ADMIN" ? "/admin/dashboard" : user?.role === "SERVICE_PROVIDER" || user?.role === "PROVIDER" ? "/provider/dashboard" : "/customer/dashboard"}
                                         className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg"
                                         onClick={() => setIsMobileMenuOpen(false)}
                                     >

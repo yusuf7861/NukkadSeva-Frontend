@@ -62,7 +62,7 @@ export default function VerifyOtpPage() {
         const otpValue = otp.join("");
         console.log("OTP:", otpValue);
         // Redirect to dashboard on success
-        window.location.href = "/dashboard";
+        window.location.href = "/customer/dashboard";
     };
 
     return (

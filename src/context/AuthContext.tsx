@@ -30,25 +30,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const checkAuth = async () => {
+        console.log("checkAuth started");
         try {
             // Check for token in localStorage
             const token = localStorage.getItem("access_token");
             if (!token) {
+                console.log("No token found");
                 setUser(null);
                 setIsLoading(false);
                 return;
             }
 
+            console.log("Token found, decoding...");
             const decoded = jwtDecode<DecodedToken>(token);
 
             // Check if token is expired
             const currentTime = Date.now() / 1000;
             if (decoded.exp < currentTime) {
+                console.log("Token expired");
                 localStorage.removeItem("access_token");
                 setUser(null);
                 setIsLoading(false);
                 return;
             }
+
+            console.log("Token valid. User Role:", decoded.role);
 
             let userData: User = {
                 username: decoded.sub,
@@ -61,7 +67,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // If user is a customer, fetch profile to get name and avatar
             if (decoded.role === "CUSTOMER" || decoded.role === "USER") {
                 try {
+                    console.log("Fetching customer profile...");
                     const { data: profile } = await api.get<CustomerProfileResponse>("/customer/profile");
+                    console.log("Profile fetched successfully", profile);
                     userData = {
                         ...userData,
                         name: profile.fullName || userData.username,
@@ -73,12 +81,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
             }
 
+            console.log("Setting user data:", userData);
             setUser(userData);
         } catch (error) {
             console.error("Auth check failed", error);
             localStorage.removeItem("access_token");
             setUser(null);
         } finally {
+            console.log("checkAuth finally block: setting isLoading to false");
             setIsLoading(false);
         }
     };
@@ -130,44 +140,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     router.push("/customer/dashboard");
                 }
             }
+            setIsLoading(false);
+
+            return userData;
         } catch (error) {
             console.error("Login failed:", error);
-            throw error;
-        } finally {
             setIsLoading(false);
+            throw error;
         }
     };
 
     const signup = async (name: string, email: string, password: string, phone: string) => {
         setIsLoading(true);
         try {
-            // 1. Register User
-            await api.post("/customer/register", { email, password });
+            // 1. Register User (Now includes full name and mobile number)
+            await api.post("/customer/register", {
+                email,
+                password,
+                fullName: name,
+                mobileNumber: phone
+            });
 
             // 2. Login to get token (without redirecting yet)
             const userData = await login(email, password, undefined, false);
 
             if (!userData) {
                 throw new Error("Auto-login failed after registration");
-            }
-
-            // 3. Update Profile with Name and Phone
-            if (userData.role === "CUSTOMER" || userData.role === "USER") {
-                await api.put("/customer/profile", {
-                    name,
-                    phone
-                });
-
-                // 4. Manually update User state with new name (Optimistic update)
-                // This avoids calling checkAuth() which might fail if cookies aren't ready or network is flaky
-                const updatedUser: User = {
-                    ...userData,
-                    name: name
-                };
-                setUser(updatedUser);
-            } else {
-                // For other roles, just use what login returned
-                setUser(userData);
             }
 
             // 5. Redirect based on role
@@ -233,8 +231,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const authRoutes = ["/login", "/signup", "/verify-otp"];
 
     useEffect(() => {
+        // Only run protection logic if auth check is complete
+        console.log("Route Protection Triggered. Path:", pathname, "IsLoading:", isLoading, "User:", !!user);
         if (!isLoading) {
-            if (user && authRoutes.includes(pathname)) {
+            const isAuthRoute = authRoutes.includes(pathname);
+            const isPublicProviderRoute = pathname.startsWith("/provider/onboarding") || pathname.startsWith("/provider/verify-email");
+            const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+
+            if (user && isAuthRoute) {
+                // User is logged in but trying to access login/signup page - redirect to dashboard
+                console.log("Logged in but accessing auth route. Redirecting.");
                 if (user.role === "ADMIN") {
                     router.push("/admin/dashboard");
                 } else if (user.role === "SERVICE_PROVIDER" || user.role === "PROVIDER") {
@@ -242,17 +248,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 } else {
                     router.push("/customer/dashboard");
                 }
-            }
-
-            // Simple protection: generic check. Middleware handles specific role checks better
-            // Exclude public provider routes
-            const isPublicProviderRoute = pathname.startsWith("/provider/onboarding") || pathname.startsWith("/provider/verify-email");
-
-            if (!user && !isPublicProviderRoute && (protectedRoutes.some(route => pathname.startsWith(route)))) {
+            } else if (!user && isProtectedRoute && !isPublicProviderRoute) {
+                // User is not logged in and trying to access protected route - redirect to login
+                console.log("Not logged in but accessing protected route. Redirecting to login.");
                 router.push("/login");
             }
         }
-    }, [user, isLoading, pathname]);
+    }, [user, isLoading, pathname, router]);
 
     return (
         <AuthContext.Provider

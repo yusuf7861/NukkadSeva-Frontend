@@ -58,6 +58,8 @@ export interface CustomerProfileResponse {
         pincode: string;
     };
     savedAddresses?: CustomerAddress[];
+    activeBookingsCount?: number;
+    reviewsGivenCount?: number;
     createdAt: string;
     updatedAt: string;
 }
@@ -185,6 +187,13 @@ export interface PublicCityResponse {
     cityName: string;
     state: string;
     pincodes: PincodeInfo[];
+}
+
+export interface ProviderAreaResponse {
+    id: number;
+    city: string;
+    pincodes: string[];
+    createdAt: string;
 }
 
 export interface BookingItem {
