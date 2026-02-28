@@ -236,7 +236,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!isLoading) {
             const isAuthRoute = authRoutes.includes(pathname);
             const isPublicProviderRoute = pathname.startsWith("/provider/onboarding") || pathname.startsWith("/provider/verify-email");
-            const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+            const isProtectedRoute = protectedRoutes.some(route => pathname === route || pathname.startsWith(`${route}/`));
 
             if (user && isAuthRoute) {
                 // User is logged in but trying to access login/signup page - redirect to dashboard

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from "lucide-react";
+import { Instagram, Linkedin, Mail, Phone, MapPin } from "lucide-react";
 
 export default function Footer() {
     return (
@@ -17,16 +17,10 @@ export default function Footer() {
                             Your trusted platform for local home services. Connect with verified professionals.
                         </p>
                         <div className="flex space-x-3">
-                            <a href="#" className="p-2 bg-gray-800 rounded-lg hover:bg-primary-500 transition-colors">
-                                <Facebook className="w-4 h-4" />
-                            </a>
-                            <a href="#" className="p-2 bg-gray-800 rounded-lg hover:bg-primary-500 transition-colors">
-                                <Twitter className="w-4 h-4" />
-                            </a>
-                            <a href="#" className="p-2 bg-gray-800 rounded-lg hover:bg-primary-500 transition-colors">
+                            <a href="https://instagram.com/siddique.raaj" target="_blank" rel="noopener noreferrer" className="p-2 bg-gray-800 rounded-lg hover:bg-primary-500 transition-colors">
                                 <Instagram className="w-4 h-4" />
                             </a>
-                            <a href="#" className="p-2 bg-gray-800 rounded-lg hover:bg-primary-500 transition-colors">
+                            <a href="https://www.linkedin.com/in/yusuf-jamal-449142173" target="_blank" rel="noopener noreferrer" className="p-2 bg-gray-800 rounded-lg hover:bg-primary-500 transition-colors">
                                 <Linkedin className="w-4 h-4" />
                             </a>
                         </div>
@@ -60,15 +54,15 @@ export default function Footer() {
                         <ul className="space-y-2">
                             <li className="flex items-center text-sm">
                                 <Mail className="w-4 h-4 mr-2 text-primary-400" />
-                                support@nukkadseva.com
+                                <a href="mailto:yjamal710@gmail.com" className="hover:text-primary-400 transition-colors">yjamal710@gmail.com</a>
                             </li>
                             <li className="flex items-center text-sm">
                                 <Phone className="w-4 h-4 mr-2 text-primary-400" />
-                                +91 1800-123-4567
+                                <a href="tel:+916200697127" className="hover:text-primary-400 transition-colors">+91 6200697127</a>
                             </li>
                             <li className="flex items-start text-sm">
                                 <MapPin className="w-4 h-4 mr-2 mt-0.5 text-primary-400 flex-shrink-0" />
-                                New Delhi, India
+                                Lucknow, India
                             </li>
                         </ul>
                     </div>

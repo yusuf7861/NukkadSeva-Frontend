@@ -180,7 +180,7 @@ export default function HomePage() {
                                     onClick={handleSearch}
                                     className="bg-primary-600 text-white px-8 py-3.5 rounded-xl font-bold hover:bg-primary-700 hover:shadow-lg hover:shadow-primary-500/30 transition-all active:scale-95 whitespace-nowrap text-lg"
                                 >
-                                    Search Docs
+                                    Find Providers
                                 </button>
                             </div>
                         </motion.div>
