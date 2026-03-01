@@ -51,13 +51,14 @@ export default function Header() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16 md:h-20">
                     {/* Brand Logo */}
-                    <Link href="/" className="flex items-center gap-2 group shrink-0">
-                        <div className="bg-primary-50 p-2 rounded-xl group-hover:bg-primary-100 transition-colors shadow-sm">
-                            <MapPin className="w-8 h-8 text-primary-600" />
-                        </div>
-                        <span className="text-xl md:text-2xl font-extrabold tracking-tight text-gray-900 group-hover:text-primary-600 transition-colors hidden sm:block">
-                            NukkadSeva
-                        </span>
+                    <Link href="/" className="relative flex items-center shrink-0 w-44 md:w-56 h-10 md:h-12 group transition-transform hover:scale-[1.02] active:scale-95">
+                        <Image
+                            src="/logo.png"
+                            alt="NukkadSeva Logo"
+                            fill
+                            className="object-contain object-left"
+                            priority
+                        />
                     </Link>
 
                     {/* Desktop Navigation */}
