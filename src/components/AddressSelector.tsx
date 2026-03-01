@@ -5,6 +5,7 @@ import api from "@/lib/api";
 import { CustomerAddress } from "@/types/backend";
 import { MapPin, Plus, Check } from "lucide-react";
 import toast from "react-hot-toast";
+import { useAuth } from "@/context/AuthContext";
 
 interface AddressSelectorProps {
     selectedAddressId: number | null;
@@ -27,11 +28,18 @@ export default function AddressSelector({ selectedAddressId, onSelectAddress }: 
     const [isDefault, setIsDefault] = useState(false);
     const [saving, setSaving] = useState(false);
 
+    const { user } = useAuth();
+
     useEffect(() => {
-        fetchAddresses();
-    }, []);
+        if (user) {
+            fetchAddresses();
+        } else {
+            setLoading(false);
+        }
+    }, [user]);
 
     const fetchAddresses = async () => {
+        if (!user) return;
         try {
             setLoading(true);
             const { data } = await api.get<CustomerAddress[]>("/customer/address");
