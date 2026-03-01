@@ -123,16 +123,12 @@ function ProvidersContent() {
                                 ))}
                             </select>
                         </div>
-
-                        <button onClick={() => setShowFilters(!showFilters)} className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">
-                            <Filter className="w-4 h-4 mr-1" />Filters
-                        </button>
                     </div>
                 </div>
 
                 <div className="flex flex-col lg:flex-row gap-4">
                     {/* Sidebar Filters */}
-                    <aside className={`${showFilters ? "block" : "hidden"} lg:block lg:w-48 flex-shrink-0`}>
+                    <aside className="hidden lg:block lg:w-48 flex-shrink-0">
                         <div className="bg-white rounded-lg p-3 shadow-sm sticky top-16">
                             <h3 className="text-xs font-semibold text-gray-900 mb-2">Categories</h3>
                             <div className="space-y-1">
