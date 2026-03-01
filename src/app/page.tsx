@@ -9,6 +9,7 @@ import Link from "next/link";
 import { Search, MapPin, Star, Shield, Clock, ArrowRight, CheckCircle, Award, Wrench, Zap, Paintbrush, Sparkles, Hammer, Snowflake } from "lucide-react";
 import { PublicCityResponse } from "@/types/backend";
 import { motion, Variants } from "framer-motion";
+import Image from "next/image";
 
 const services = [
     { name: "Plumbing", icon: Wrench, color: "bg-blue-50 text-blue-600 border-blue-100" },
@@ -279,8 +280,8 @@ export default function HomePage() {
                             <motion.div key={provider.name} variants={fadeUpItem}>
                                 <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 group">
                                     <div className="relative mb-6 inline-block w-full text-center">
-                                        <div className="w-24 h-24 mx-auto rounded-full overflow-hidden border-4 border-primary-50 group-hover:border-primary-100 transition-colors">
-                                            <img src={provider.image} alt={provider.name} className="w-full h-full object-cover" />
+                                        <div className="w-24 h-24 mx-auto rounded-full overflow-hidden border-4 border-primary-50 group-hover:border-primary-100 transition-colors relative">
+                                            <Image src={provider.image} alt={provider.name} fill sizes="96px" className="object-cover" />
                                         </div>
                                         <div className="absolute bottom-0 right-1/2 translate-x-12 bg-white rounded-full p-1 shadow-sm">
                                             <CheckCircle className="w-6 h-6 text-primary-500 fill-primary-50" />

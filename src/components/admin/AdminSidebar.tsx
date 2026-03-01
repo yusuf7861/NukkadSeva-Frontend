@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import Image from "next/image";
 
 export default function AdminSidebar() {
     const pathname = usePathname();
@@ -88,9 +89,9 @@ export default function AdminSidebar() {
             </nav>
             <div className="p-4 border-t border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-3 p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50">
-                    <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden">
+                    <div className="relative w-10 h-10 rounded-full bg-slate-200 overflow-hidden">
                         {user?.avatar ? (
-                            <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+                            <Image src={user.avatar} alt="Profile" fill sizes="40px" className="object-cover" />
                         ) : (
                             <span className="material-symbols-outlined w-full h-full flex items-center justify-center text-slate-400">person</span>
                         )}

@@ -195,7 +195,7 @@ export default function LoginPage() {
                     </div>
 
                     <button className="w-full flex items-center justify-center border-2 border-gray-100 py-3.5 rounded-xl hover:bg-gray-50 hover:border-gray-200 transition-all text-gray-700 font-bold active:scale-[0.98]">
-                        <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5 mr-3" />
+                        <Image width={20} height={20} src="https://www.google.com/favicon.ico" alt="Google" className="mr-3" />
                         Google
                     </button>
 
@@ -287,9 +287,9 @@ export default function LoginPage() {
 
                             <div className="mt-10 flex items-center gap-4 border-t border-white/10 pt-8 relative z-10">
                                 <div className="flex -space-x-3">
-                                    <img className="w-10 h-10 rounded-full border-2 border-primary-800 object-cover" src="https://randomuser.me/api/portraits/women/44.jpg" alt="User" />
-                                    <img className="w-10 h-10 rounded-full border-2 border-primary-800 object-cover" src="https://randomuser.me/api/portraits/men/32.jpg" alt="User" />
-                                    <img className="w-10 h-10 rounded-full border-2 border-primary-800 object-cover" src="https://randomuser.me/api/portraits/women/68.jpg" alt="User" />
+                                    <Image width={40} height={40} className="rounded-full border-2 border-primary-800 object-cover" src="https://randomuser.me/api/portraits/women/44.jpg" alt="User" />
+                                    <Image width={40} height={40} className="rounded-full border-2 border-primary-800 object-cover" src="https://randomuser.me/api/portraits/men/32.jpg" alt="User" />
+                                    <Image width={40} height={40} className="rounded-full border-2 border-primary-800 object-cover" src="https://randomuser.me/api/portraits/women/68.jpg" alt="User" />
                                 </div>
                                 <div className="text-sm font-medium text-white max-w-[150px]">
                                     {userType === "CUSTOMER" ? (

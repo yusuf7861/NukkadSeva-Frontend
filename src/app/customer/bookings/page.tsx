@@ -7,6 +7,7 @@ import { Calendar, Clock, MapPin, Phone, Star, CheckCircle, XCircle } from "luci
 import api from "@/lib/api";
 import { useCustomerSocket } from "@/hooks/useCustomerSocket";
 import toast from "react-hot-toast";
+import Image from "next/image";
 
 type BookingType = {
     id: string;
@@ -173,7 +174,7 @@ export default function BookingsPage() {
                             <div key={booking.id} className="bg-white rounded-lg p-3 md:p-4 shadow-sm">
                                 <div className="flex items-start justify-between">
                                     <div className="flex items-start space-x-3">
-                                        <img src={booking.providerImage} alt={booking.provider} className="w-10 h-10 rounded-full object-cover" />
+                                        <Image src={booking.providerImage} alt={booking.provider} width={40} height={40} className="w-10 h-10 rounded-full object-cover" />
                                         <div>
                                             <h3 className="text-sm font-semibold text-gray-900">{booking.service}</h3>
                                             <p className="text-xs text-gray-500">{booking.provider}</p>

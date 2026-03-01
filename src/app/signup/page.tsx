@@ -306,9 +306,9 @@ export default function SignupPage() {
 
                             <div className="mt-10 flex items-center gap-4 border-t border-white/10 pt-8">
                                 <div className="flex -space-x-3">
-                                    <img className="w-10 h-10 rounded-full border-2 border-primary-800 object-cover" src="https://randomuser.me/api/portraits/women/44.jpg" alt="User" />
-                                    <img className="w-10 h-10 rounded-full border-2 border-primary-800 object-cover" src="https://randomuser.me/api/portraits/men/32.jpg" alt="User" />
-                                    <img className="w-10 h-10 rounded-full border-2 border-primary-800 object-cover" src="https://randomuser.me/api/portraits/women/68.jpg" alt="User" />
+                                    <Image width={40} height={40} className="rounded-full border-2 border-primary-800 object-cover" src="https://randomuser.me/api/portraits/women/44.jpg" alt="User" />
+                                    <Image width={40} height={40} className="rounded-full border-2 border-primary-800 object-cover" src="https://randomuser.me/api/portraits/men/32.jpg" alt="User" />
+                                    <Image width={40} height={40} className="rounded-full border-2 border-primary-800 object-cover" src="https://randomuser.me/api/portraits/women/68.jpg" alt="User" />
                                     <div className="w-10 h-10 rounded-full border-2 border-primary-800 bg-white flex items-center justify-center text-xs font-bold text-gray-900 z-10">4.8★</div>
                                 </div>
                                 <div className="text-sm font-medium text-white max-w-[150px]">
