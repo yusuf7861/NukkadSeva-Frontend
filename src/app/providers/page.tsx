@@ -7,7 +7,7 @@ import Footer from "@/components/Footer";
 import Link from "next/link";
 import api from "@/lib/api";
 import { DashboardProviderDto, PublicCityResponse } from "@/types/backend";
-import { Search, MapPin, Filter, Star, Grid, List } from "lucide-react";
+import { Search, MapPin, Filter, Star, Grid, List, Shield } from "lucide-react";
 
 const categories = ["All", "Plumbing", "Electrical", "Painting", "Cleaning", "Carpentry", "AC Repair"];
 
@@ -179,25 +179,46 @@ function ProvidersContent() {
                         {isLoading ? (
                             <div className="text-center py-10">Loading...</div>
                         ) : (
-                            <div className={viewMode === "grid" ? "grid grid-cols-2 md:grid-cols-3 gap-3" : "space-y-3"}>
+                            <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4" : "space-y-4"}>
                                 {filteredServices.length > 0 ? (
                                     filteredServices.map((service) => (
-                                        <Link key={service.id} href={`/providers/${service.providerId}`} className={`bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow ${viewMode === "list" ? "flex items-center p-3" : "p-3"}`}>
-                                            <div className={viewMode === "list" ? "flex items-center flex-1" : ""}>
-                                                <div className={viewMode === "list" ? "flex-1" : "text-center"}>
-                                                    <div className="flex items-center justify-center gap-1 mb-0.5">
-                                                        <h3 className="text-sm font-semibold text-gray-900 truncate">{service.name}</h3>
+                                        <Link key={service.id} href={`/providers/${service.providerId}`} className={`bg-white rounded-xl shadow-sm hover:shadow-md transition-all border border-gray-100 overflow-hidden group ${viewMode === "list" ? "flex flex-col sm:flex-row" : "flex flex-col"}`}>
+                                            {/* Service Image Placeholder (Optional) / Icon */}
+                                            <div className={`${viewMode === "list" ? "w-full sm:w-48 h-32 sm:h-auto" : "h-32 w-full"} bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center relative`}>
+                                                <div className="text-white opacity-80 group-hover:scale-110 group-hover:opacity-100 transition-transform duration-300">
+                                                    <Grid className="w-8 h-8" />
+                                                </div>
+                                                {service.providerVerified && (
+                                                    <div className="absolute top-2 right-2 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded-full flex items-center shadow-sm">
+                                                        <Shield className="w-3 h-3 mr-1" />
+                                                        VERIFIED
                                                     </div>
-                                                    <p className="text-xs text-gray-500 mb-1">{service.category}</p>
-                                                    <div className="flex items-center justify-center gap-1 mb-1">
-                                                        <span className="text-xs text-gray-700 font-medium">₹{service.price}</span>
-                                                        <span className="text-xs text-gray-400">|</span>
-                                                        <span className="text-xs text-gray-500">{service.durationMinutes} mins</span>
+                                                )}
+                                            </div>
+
+                                            {/* Card Content */}
+                                            <div className="p-4 flex flex-col flex-1">
+                                                <div className="flex justify-between items-start mb-2 gap-2">
+                                                    <div>
+                                                        <h3 className="text-sm font-bold text-gray-900 line-clamp-2 md:line-clamp-1 group-hover:text-primary-600 transition-colors">{service.name}</h3>
+                                                        <p className="text-xs text-primary-500 font-medium">{service.category}</p>
                                                     </div>
-                                                    <p className="text-xs text-gray-500 mt-2 border-t pt-2 max-w-xs mx-auto truncate">By: {service.providerName}</p>
-                                                    {service.providerVerified && (
-                                                        <span className="inline-flex items-center gap-1 text-[10px] text-primary-600 font-medium mt-1 bg-primary-50 px-1.5 py-0.5 rounded">Verified Provider</span>
-                                                    )}
+                                                </div>
+
+                                                <div className="mt-auto pt-3 flex items-end justify-between border-t border-gray-100">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[10px] text-gray-500 uppercase tracking-wider">Starts From</span>
+                                                        <div className="flex items-center gap-1.5 text-gray-900">
+                                                            <span className="text-base font-bold">₹{service.price}</span>
+                                                            {service.durationMinutes && (
+                                                                <span className="text-xs text-gray-500">/ {service.durationMinutes}m</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <span className="text-[10px] text-gray-500 block mb-0.5">Offered by</span>
+                                                        <span className="text-xs font-medium text-gray-700 truncate max-w-[120px] block">{service.providerName}</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </Link>
