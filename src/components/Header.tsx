@@ -77,6 +77,12 @@ export default function Header() {
                                 <div className="relative" ref={dropdownRef}>
                                     <button
                                         onClick={() => setIsProfileOpen(!isProfileOpen)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Escape') setIsProfileOpen(false);
+                                        }}
+                                        aria-expanded={isProfileOpen}
+                                        aria-haspopup="menu"
+                                        aria-controls="profile-menu"
                                         className="flex items-center space-x-2 px-2 py-1.5 rounded-xl hover:bg-gray-100/80 border border-transparent hover:border-gray-200/50 transition-all focus:outline-none focus:ring-2 focus:ring-primary-500/20 active:scale-95"
                                     >
                                         <img
@@ -98,6 +104,9 @@ export default function Header() {
                                                 initial="hidden"
                                                 animate="visible"
                                                 exit="exit"
+                                                id="profile-menu"
+                                                role="menu"
+                                                aria-orientation="vertical"
                                                 className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 overflow-hidden"
                                             >
                                                 <div className="px-4 py-3 border-b border-gray-100 mb-1 bg-gray-50/50 lg:hidden">
@@ -109,6 +118,7 @@ export default function Header() {
                                                     href={user?.role === "ADMIN" ? "/admin/dashboard" : user?.role === "SERVICE_PROVIDER" || user?.role === "PROVIDER" ? "/provider/dashboard" : "/customer/dashboard"}
                                                     className="flex items-center px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors group"
                                                     onClick={() => setIsProfileOpen(false)}
+                                                    role="menuitem"
                                                 >
                                                     <UserCircle className="w-4 h-4 mr-3 text-gray-400 group-hover:text-primary-500" />
                                                     Dashboard
@@ -117,6 +127,7 @@ export default function Header() {
                                                     href="/bookings"
                                                     className="flex items-center px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors group"
                                                     onClick={() => setIsProfileOpen(false)}
+                                                    role="menuitem"
                                                 >
                                                     <Calendar className="w-4 h-4 mr-3 text-gray-400 group-hover:text-primary-500" />
                                                     My Bookings
@@ -125,6 +136,7 @@ export default function Header() {
                                                     href="/payments"
                                                     className="flex items-center px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors group"
                                                     onClick={() => setIsProfileOpen(false)}
+                                                    role="menuitem"
                                                 >
                                                     <CreditCard className="w-4 h-4 mr-3 text-gray-400 group-hover:text-primary-500" />
                                                     Payments
@@ -133,6 +145,7 @@ export default function Header() {
                                                     href="/settings"
                                                     className="flex items-center px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors group"
                                                     onClick={() => setIsProfileOpen(false)}
+                                                    role="menuitem"
                                                 >
                                                     <Settings className="w-4 h-4 mr-3 text-gray-400 group-hover:text-primary-500" />
                                                     Settings
@@ -143,6 +156,7 @@ export default function Header() {
                                                         setIsProfileOpen(false);
                                                         logout();
                                                     }}
+                                                    role="menuitem"
                                                     className="flex items-center w-full px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 transition-colors group"
                                                 >
                                                     <LogOut className="w-4 h-4 mr-3 text-red-400 group-hover:text-red-500" />
