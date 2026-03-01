@@ -30,31 +30,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const checkAuth = async () => {
-        console.log("checkAuth started");
+
         try {
             // Check for token in localStorage
             const token = localStorage.getItem("access_token");
             if (!token) {
-                console.log("No token found");
+
                 setUser(null);
                 setIsLoading(false);
                 return;
             }
 
-            console.log("Token found, decoding...");
+
             const decoded = jwtDecode<DecodedToken>(token);
 
             // Check if token is expired
             const currentTime = Date.now() / 1000;
             if (decoded.exp < currentTime) {
-                console.log("Token expired");
+
                 localStorage.removeItem("access_token");
+                document.cookie = "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
                 setUser(null);
                 setIsLoading(false);
                 return;
             }
 
-            console.log("Token valid. User Role:", decoded.role);
+
 
             let userData: User = {
                 username: decoded.sub,
@@ -67,9 +68,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // If user is a customer, fetch profile to get name and avatar
             if (decoded.role === "CUSTOMER" || decoded.role === "USER") {
                 try {
-                    console.log("Fetching customer profile...");
+
                     const { data: profile } = await api.get<CustomerProfileResponse>("/customer/profile");
-                    console.log("Profile fetched successfully", profile);
+
                     userData = {
                         ...userData,
                         name: profile.fullName || userData.username,
@@ -81,14 +82,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
             }
 
-            console.log("Setting user data:", userData);
+
             setUser(userData);
         } catch (error) {
             console.error("Auth check failed", error);
             localStorage.removeItem("access_token");
+            document.cookie = "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
             setUser(null);
         } finally {
-            console.log("checkAuth finally block: setting isLoading to false");
+
             setIsLoading(false);
         }
     };
@@ -99,6 +101,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const { data } = await api.post<AuthResponse>("/login", { email, password });
 
             localStorage.setItem("access_token", data.access_token);
+            // Set cookie for Next.js Middleware with max-age (e.g. 7 days = 604800 seconds)
+            document.cookie = `access_token=${data.access_token}; path=/; max-age=604800; SameSite=Lax`;
 
             const decoded = jwtDecode<DecodedToken>(data.access_token);
 
@@ -216,12 +220,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
             await api.post("/logout");
             localStorage.removeItem("access_token");
+            document.cookie = "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
             setUser(null);
             router.push("/login");
         } catch (error) {
             console.error("Logout failed:", error);
             // Even if logout fails server-side, clear client state
             localStorage.removeItem("access_token");
+            document.cookie = "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
             setUser(null);
             router.push("/login");
         }
@@ -232,7 +238,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         // Only run protection logic if auth check is complete
-        console.log("Route Protection Triggered. Path:", pathname, "IsLoading:", isLoading, "User:", !!user);
+
         if (!isLoading) {
             const isAuthRoute = authRoutes.includes(pathname);
             const isPublicProviderRoute = pathname.startsWith("/provider/onboarding") || pathname.startsWith("/provider/verify-email");
@@ -240,7 +246,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             if (user && isAuthRoute) {
                 // User is logged in but trying to access login/signup page - redirect to dashboard
-                console.log("Logged in but accessing auth route. Redirecting.");
+
                 if (user.role === "ADMIN") {
                     router.push("/admin/dashboard");
                 } else if (user.role === "SERVICE_PROVIDER" || user.role === "PROVIDER") {
@@ -250,7 +256,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
             } else if (!user && isProtectedRoute && !isPublicProviderRoute) {
                 // User is not logged in and trying to access protected route - redirect to login
-                console.log("Not logged in but accessing protected route. Redirecting to login.");
+
                 router.push("/login");
             }
         }
