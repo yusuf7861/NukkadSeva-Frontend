@@ -137,9 +137,7 @@ export default function CustomerProfilePage() {
 
         setIsUploadingPic(true);
         try {
-            await api.put("/update-profile-picture", formData, {
-                headers: { "Content-Type": "multipart/form-data" },
-            });
+            await api.put("/update-profile-picture", formData);
             // Refresh profile to get the new picture URL
             await fetchProfile();
         } catch (error) {

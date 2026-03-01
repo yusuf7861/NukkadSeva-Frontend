@@ -192,9 +192,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const registerProvider = async (formData: FormData) => {
         setIsLoading(true);
         try {
-            await api.post("/provider/register", formData, {
-                headers: { "Content-Type": "multipart/form-data" },
-            });
+            await api.post("/provider/register", formData);
         } catch (error) {
             console.error("Provider registration failed:", error);
             throw error;
