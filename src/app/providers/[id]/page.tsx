@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { DashboardProviderDto, BookingRequest, ServiceType, PaymentMethod } from "@/types/backend";
-import { Star, MapPin, Phone, Clock, Shield, ChevronLeft, CheckCircle, MessageCircle, CreditCard } from "lucide-react";
+import { Star, MapPin, Phone, Clock, Shield, ChevronLeft, CheckCircle, MessageCircle, CreditCard, SearchX, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import AddressSelector from "@/components/AddressSelector";
@@ -147,8 +147,42 @@ export default function ProviderDetailPage({ params }: { params: { id: string } 
         }
     };
 
-    if (loading) return <div className="p-10 text-center">Loading provider details...</div>;
-    if (!provider) return <div className="p-10 text-center">Provider not found</div>;
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex flex-col">
+                <Header />
+                <main className="flex-1 flex flex-col items-center justify-center p-6">
+                    <Loader2 className="w-8 h-8 text-primary-500 animate-spin mb-4" />
+                    <p className="text-gray-600 font-medium">Loading provider details...</p>
+                </main>
+                <Footer />
+            </div>
+        );
+    }
+
+    if (!provider) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex flex-col">
+                <Header />
+                <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-12 flex flex-col items-center justify-center text-center">
+                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 max-w-md w-full flex flex-col items-center">
+                        <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
+                            <SearchX className="w-8 h-8" />
+                        </div>
+                        <h1 className="text-xl font-bold text-gray-900 mb-2">Provider Not Found</h1>
+                        <p className="text-sm text-gray-500 mb-6">
+                            We couldn't find the provider you're looking for. They might have been removed or the link is incorrect.
+                        </p>
+                        <Link href="/providers" className="w-full bg-primary-500 text-white font-medium py-2.5 rounded-lg hover:bg-primary-600 transition-colors flex items-center justify-center">
+                            <ChevronLeft className="w-4 h-4 mr-2" />
+                            Back to Providers List
+                        </Link>
+                    </div>
+                </main>
+                <Footer />
+            </div>
+        );
+    }
     // Mock availability
     const availability = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"];
 
