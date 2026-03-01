@@ -58,6 +58,7 @@ export default function Header() {
                             fill
                             className="object-contain object-left"
                             priority
+                            unoptimized
                         />
                     </Link>
 
