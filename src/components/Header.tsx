@@ -51,14 +51,11 @@ export default function Header() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16 md:h-20">
                     {/* Brand Logo */}
-                    <Link href="/" className="relative flex items-center shrink-0 w-44 md:w-56 h-10 md:h-12 group transition-transform hover:scale-[1.02] active:scale-95">
-                        <Image
+                    <Link href="/" className="flex items-center shrink-0 group transition-transform hover:scale-[1.02] active:scale-95">
+                        <img
                             src="/logo.png"
                             alt="NukkadSeva Logo"
-                            fill
-                            className="object-contain object-left"
-                            priority
-                            unoptimized
+                            className="h-10 md:h-12 w-auto object-contain object-left"
                         />
                     </Link>
 
