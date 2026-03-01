@@ -7,6 +7,7 @@
   [![React](https://img.shields.io/badge/React-18.2.0-blue?style=for-the-badge&logo=react)](https://reactjs.org/)
   [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.3.0-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 </div>
 
 <br/>
@@ -92,6 +93,20 @@ Dedicated dashboard layouts for managing active jobs, payments, profile verifica
 
 ---
 
+## 📂 Project Structure
+
+```
+src/
+├── app/                 # Next.js 14 App Router routes (pages & layouts)
+├── components/          # Reusable React components (Header, Footer, Inputs)
+├── context/             # React Context providers (AuthContext)
+├── hooks/               # Custom React hooks (useWebSockets)
+├── lib/                 # Utility libraries and API instances (Axios config)
+└── types/               # TypeScript interfaces and Data Transfer Objects (DTOs)
+```
+
+---
+
 ## 🔒 Vercel Deployment & Security
 
 This architecture is optimized for seamless deployment to **Vercel** and hardened against common web vulnerabilities.
@@ -109,4 +124,23 @@ This architecture is optimized for seamless deployment to **Vercel** and hardene
 ---
 
 ## 🤝 Contributing
-Contributions are always welcome. Please ensure your syntax follows the `.eslintrc.json` guidelines before opening a pull request.
+Contributions are always welcome! 
+1. Fork the feature branch
+2. Ensure your syntax follows the `.eslintrc.json` guidelines
+3. Submit a Pull Request.
+
+---
+
+## 👥 Contributors
+
+Thanks goes to these wonderful people who have contributed to this project:
+
+| <a href="https://github.com/yjamal710"><img src="https://avatars.githubusercontent.com/u/108920950?v=4" width="100px;" alt=""/><br /><sub><b>Yusuf Jamal</b></sub></a><br />💻 📖 🐛 | <a href="[CONTRIBUTOR_2_LINK]"><img src="[CONTRIBUTOR_2_IMG_URL]" width="100px;" alt=""/><br /><sub><b>[Contributor 2 Name]</b></sub></a><br />💻 🎨 🤔 |
+| :---: | :---: |
+
+<!-- Note: Add more contributors above matching the table format -->
+
+---
+
+**Built with ❤️ by the NukkadSeva Team**
+![alt text]([PLACEHOLDER_FOR_FOOTER_IMAGE])
