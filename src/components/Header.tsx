@@ -53,7 +53,7 @@ export default function Header() {
                     {/* Brand Logo */}
                     <Link href="/" className="flex items-center gap-2 group shrink-0">
                         <div className="bg-primary-50 p-2 rounded-xl group-hover:bg-primary-100 transition-colors shadow-sm">
-                            <Image src="/logo.svg" alt="NukkadSeva Logo" width={32} height={32} className="object-contain" priority />
+                            <MapPin className="w-8 h-8 text-primary-600" />
                         </div>
                         <span className="text-xl md:text-2xl font-extrabold tracking-tight text-gray-900 group-hover:text-primary-600 transition-colors hidden sm:block">
                             NukkadSeva
