@@ -12,6 +12,7 @@ export default function ProviderAreasPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState("");
+    const [fetchError, setFetchError] = useState("");
 
     // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -24,11 +25,14 @@ export default function ProviderAreasPage() {
     }, []);
 
     const fetchAreas = async () => {
+        setIsLoading(true);
+        setFetchError("");
         try {
             const { data } = await api.get<ProviderAreaResponse[]>("/provider/areas");
             setAreas(data);
         } catch (err) {
             console.error("Failed to fetch areas", err);
+            setFetchError("We encountered an error loading your service areas.");
         } finally {
             setIsLoading(false);
         }
@@ -89,7 +93,7 @@ export default function ProviderAreasPage() {
 
         try {
             await api.delete(`/provider/areas/${areaId}`);
-            setAreas(areas.filter(a => a.id !== areaId));
+            setAreas(prevAreas => prevAreas.filter(a => a.id !== areaId));
         } catch (err) {
             console.error("Failed to remove area", err);
         }
@@ -116,6 +120,22 @@ export default function ProviderAreasPage() {
                 {isLoading ? (
                     <div className="flex justify-center items-center h-64">
                         <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+                    </div>
+                ) : fetchError ? (
+                    <div className="bg-red-50 rounded-2xl border border-red-100 p-12 text-center shadow-sm">
+                        <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <AlertCircle className="w-8 h-8 text-red-500" />
+                        </div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">Failed to Load</h3>
+                        <p className="text-red-700 max-w-sm mx-auto mb-6">
+                            {fetchError} Please check your connection or try again.
+                        </p>
+                        <button
+                            onClick={fetchAreas}
+                            className="bg-red-100 text-red-800 hover:bg-red-200 font-medium px-6 py-2.5 rounded-xl transition"
+                        >
+                            Try Again
+                        </button>
                     </div>
                 ) : areas.length === 0 ? (
                     <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center shadow-sm">
@@ -213,8 +233,8 @@ export default function ProviderAreasPage() {
                                                     <label
                                                         key={pin.pincode}
                                                         className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition ${selectedPincodes.includes(pin.pincode)
-                                                                ? 'border-primary-500 bg-primary-50'
-                                                                : 'border-gray-200 bg-white hover:border-gray-300'
+                                                            ? 'border-primary-500 bg-primary-50'
+                                                            : 'border-gray-200 bg-white hover:border-gray-300'
                                                             }`}
                                                     >
                                                         <input

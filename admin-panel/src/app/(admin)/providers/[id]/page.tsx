@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 import {
     ArrowLeft, Mail, Phone, Briefcase, MapPin, Star, Calendar,
     CheckCircle, XCircle, Loader2, Clock, FileText, Shield, User,
-    IdCard, Building, Award, Languages, Globe, Image, BadgeCheck, AlertTriangle,
+    Contact, Building, Award, Languages, Globe, Image, BadgeCheck, AlertTriangle,
 } from "lucide-react";
 
 interface ProviderDetail {
@@ -188,7 +188,7 @@ export default function ProviderDetailPage() {
                             <InfoItem icon={Building} label="Business Name" value={provider.businessName} />
                             <InfoItem icon={Briefcase} label="Service Category" value={provider.serviceCategory} />
                             <InfoItem icon={Award} label="Experience" value={provider.experience ? `${provider.experience} years` : undefined} />
-                            <InfoItem icon={IdCard} label="GSTIN" value={provider.gstin} />
+                            <InfoItem icon={Contact} label="GSTIN" value={provider.gstin} />
                         </div>
                         {provider.bio && (
                             <div className="mt-4 p-4 bg-gray-50 rounded-xl">

@@ -48,6 +48,14 @@ export function middleware(request: NextRequest) {
         try {
             const decoded = jwtDecode<DecodedToken>(token);
 
+            // Check expiry for all authenticated requests
+            const currentTime = Date.now() / 1000;
+            if (decoded.exp < currentTime) {
+                const response = NextResponse.redirect(new URL('/login', request.url));
+                response.cookies.delete('access_token');
+                return response;
+            }
+
             if (path.startsWith('/admin') && decoded.role !== 'ADMIN') {
                 return NextResponse.redirect(new URL('/login', request.url));
             }
@@ -72,5 +80,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+    matcher: ['/((?!api|_next/static|_next/image|.*\\.png$|.*\\.jpg$|.*\\.jpeg$|.*\\.svg$|.*\\.webp$|favicon.ico).*)'],
 };

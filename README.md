@@ -135,7 +135,7 @@ Contributions are always welcome!
 
 Thanks goes to these wonderful people who have contributed to this project:
 
-| <a href="https://github.com/yjamal710"><img src="https://avatars.githubusercontent.com/u/108920950?v=4" width="100px;" alt=""/><br /><sub><b>Yusuf Jamal</b></sub></a><br />💻 📖 🐛 | <a href="[CONTRIBUTOR_2_LINK]"><img src="[CONTRIBUTOR_2_IMG_URL]" width="100px;" alt=""/><br /><sub><b>[Contributor 2 Name]</b></sub></a><br />💻 🎨 🤔 |
+| <a href="https://github.com/yusuf7861"><img src="https://avatars.githubusercontent.com/u/108920950?v=4" width="100px;" alt=""/><br /><sub><b>Yusuf Jamal</b></sub></a><br />💻 📖 🐛 | <a href="[CONTRIBUTOR_2_LINK]"><img src="[CONTRIBUTOR_2_IMG_URL]" width="100px;" alt=""/><br /><sub><b>[Contributor 2 Name]</b></sub></a><br />💻 🎨 🤔 |
 | :---: | :---: |
 
 <!-- Note: Add more contributors above matching the table format -->
