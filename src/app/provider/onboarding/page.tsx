@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState, ChangeEvent, FormEvent } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { ProviderRegistrationData } from "@/types/backend";
@@ -54,9 +55,22 @@ export default function ProviderOnboardingPage() {
     const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, files } = e.target;
         if (files && files[0]) {
+            const file = files[0];
+
+            if (!file.type.startsWith("image/")) {
+                toast.error("Only image files are allowed.");
+                e.target.value = "";
+                return;
+            }
+            if (file.size > 204800) {
+                toast.error("File size must be less than 200KB.");
+                e.target.value = "";
+                return;
+            }
+
             setFormData(prev => ({
                 ...prev,
-                [name]: files[0]
+                [name]: file
             }));
         }
     };
@@ -101,12 +115,12 @@ export default function ProviderOnboardingPage() {
             {/* Top Navigation Bar */}
             <header className="w-full border-b border-gray-200 bg-white px-6 py-4">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-primary-500 p-2 rounded-lg">
-                            <span className="material-symbols-outlined text-white">build</span>
+                    <Link href="/" className="flex items-center gap-2 group">
+                        <div className="bg-primary-50 p-2 rounded-xl group-hover:bg-primary-100 transition-colors">
+                            <Image src="/logo.svg" alt="NukkadSeva Logo" width={28} height={28} className="object-contain" />
                         </div>
-                        <h2 className="text-xl font-bold text-gray-900">ProFix Onboarding</h2>
-                    </div>
+                        <h2 className="text-xl font-extrabold tracking-tight text-gray-900 group-hover:text-primary-600 transition-colors">NukkadSeva Onboarding</h2>
+                    </Link>
                 </div>
             </header>
 
@@ -184,7 +198,7 @@ export default function ProviderOnboardingPage() {
                                     </div>
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-700 mb-2">Profile Picture</label>
-                                        <input name="profilePicture" type="file" onChange={handleFileChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100" />
+                                        <input name="profilePicture" type="file" accept="image/*" onChange={handleFileChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100" />
                                     </div>
                                 </div>
                             )}
@@ -247,19 +261,19 @@ export default function ProviderOnboardingPage() {
                                     <div className="grid grid-cols-1 gap-6">
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 mb-2">Govt ID Proof (Aadhaar/PAN)</label>
-                                            <input name="govtId" type="file" onChange={handleFileChange} required className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100" />
+                                            <input name="govtId" type="file" accept="image/*" onChange={handleFileChange} required className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100" />
                                         </div>
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 mb-2">Professional Qualification Certificate</label>
-                                            <input name="qualification" type="file" onChange={handleFileChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100" />
+                                            <input name="qualification" type="file" accept="image/*" onChange={handleFileChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100" />
                                         </div>
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 mb-2">Police Verification Document</label>
-                                            <input name="policeVerification" type="file" onChange={handleFileChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100" />
+                                            <input name="policeVerification" type="file" accept="image/*" onChange={handleFileChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100" />
                                         </div>
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 mb-2">Formal Photograph</label>
-                                            <input name="photograph" type="file" onChange={handleFileChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100" />
+                                            <input name="photograph" type="file" accept="image/*" onChange={handleFileChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100" />
                                         </div>
                                     </div>
 

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Mail, ArrowRight, RefreshCw } from "lucide-react";
 
 export default function VerifyOtpPage() {
@@ -62,17 +63,15 @@ export default function VerifyOtpPage() {
         const otpValue = otp.join("");
         console.log("OTP:", otpValue);
         // Redirect to dashboard on success
-        window.location.href = "/dashboard";
+        window.location.href = "/customer/dashboard";
     };
 
     return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
             <div className="w-full max-w-md">
                 {/* Logo */}
-                <Link href="/" className="flex items-center justify-center space-x-2 mb-8">
-                    <div className="w-12 h-12 bg-primary-500 rounded-lg flex items-center justify-center">
-                        <span className="text-white font-bold text-2xl">N</span>
-                    </div>
+                <Link href="/" className="flex items-center justify-center gap-2 mb-8">
+                    <Image src="/logo.svg" alt="NukkadSeva Logo" width={48} height={48} className="object-contain" />
                     <span className="text-2xl font-bold text-gray-900">NukkadSeva</span>
                 </Link>
 

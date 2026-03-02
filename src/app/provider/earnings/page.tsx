@@ -6,6 +6,7 @@ import EarningsStats from "@/components/provider/earnings/EarningsStats";
 import IncomeTrendsChart from "@/components/provider/earnings/IncomeTrendsChart";
 import RecentPayoutsTable from "@/components/provider/earnings/RecentPayoutsTable";
 import LinkedAccountCard from "@/components/provider/earnings/LinkedAccountCard";
+import Image from "next/image";
 
 export default function ProviderEarningsPage() {
     const { user } = useAuth();
@@ -27,7 +28,7 @@ export default function ProviderEarningsPage() {
                             </button>
                             <div className="size-10 rounded-full bg-gray-200 overflow-hidden border border-gray-200 relative">
                                 {user?.avatar ? (
-                                    <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+                                    <Image src={user.avatar} alt="Profile" fill sizes="40px" className="object-cover" />
                                 ) : (
                                     <span className="material-symbols-outlined absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-400">person</span>
                                 )}

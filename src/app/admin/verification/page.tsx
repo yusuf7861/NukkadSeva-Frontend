@@ -58,8 +58,8 @@ export default function AdminVerification() {
                                 </div>
                                 <p className="text-xs text-slate-500 mt-0.5">Category: HVAC Maintenance</p>
                                 <div className="flex items-center gap-3 mt-2 text-[11px] text-slate-400">
-                                    <span className="flex items-center gap-1"><span class="material-symbols-outlined text-xs">calendar_today</span> Oct 12, 2023</span>
-                                    <span className="flex items-center gap-1"><span class="material-symbols-outlined text-xs">location_on</span> Houston, TX</span>
+                                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-xs">calendar_today</span> Oct 12, 2023</span>
+                                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-xs">location_on</span> Houston, TX</span>
                                 </div>
                             </div>
                         </div>

@@ -30,25 +30,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const checkAuth = async () => {
+
         try {
             // Check for token in localStorage
             const token = localStorage.getItem("access_token");
             if (!token) {
+
                 setUser(null);
                 setIsLoading(false);
                 return;
             }
+
 
             const decoded = jwtDecode<DecodedToken>(token);
 
             // Check if token is expired
             const currentTime = Date.now() / 1000;
             if (decoded.exp < currentTime) {
+
                 localStorage.removeItem("access_token");
+                document.cookie = "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
                 setUser(null);
                 setIsLoading(false);
                 return;
             }
+
+
 
             let userData: User = {
                 username: decoded.sub,
@@ -61,7 +68,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // If user is a customer, fetch profile to get name and avatar
             if (decoded.role === "CUSTOMER" || decoded.role === "USER") {
                 try {
+
                     const { data: profile } = await api.get<CustomerProfileResponse>("/customer/profile");
+
                     userData = {
                         ...userData,
                         name: profile.fullName || userData.username,
@@ -73,12 +82,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
             }
 
+
             setUser(userData);
         } catch (error) {
             console.error("Auth check failed", error);
             localStorage.removeItem("access_token");
+            document.cookie = "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
             setUser(null);
         } finally {
+
             setIsLoading(false);
         }
     };
@@ -89,6 +101,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const { data } = await api.post<AuthResponse>("/login", { email, password });
 
             localStorage.setItem("access_token", data.access_token);
+            // Set cookie for Next.js Middleware with max-age (e.g. 7 days = 604800 seconds)
+            document.cookie = `access_token=${data.access_token}; path=/; max-age=604800; SameSite=Lax`;
 
             const decoded = jwtDecode<DecodedToken>(data.access_token);
 
@@ -130,44 +144,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     router.push("/customer/dashboard");
                 }
             }
+            setIsLoading(false);
+
+            return userData;
         } catch (error) {
             console.error("Login failed:", error);
-            throw error;
-        } finally {
             setIsLoading(false);
+            throw error;
         }
     };
 
     const signup = async (name: string, email: string, password: string, phone: string) => {
         setIsLoading(true);
         try {
-            // 1. Register User
-            await api.post("/customer/register", { email, password });
+            // 1. Register User (Now includes full name and mobile number)
+            await api.post("/customer/register", {
+                email,
+                password,
+                fullName: name,
+                mobileNumber: phone
+            });
 
             // 2. Login to get token (without redirecting yet)
             const userData = await login(email, password, undefined, false);
 
             if (!userData) {
                 throw new Error("Auto-login failed after registration");
-            }
-
-            // 3. Update Profile with Name and Phone
-            if (userData.role === "CUSTOMER" || userData.role === "USER") {
-                await api.put("/customer/profile", {
-                    name,
-                    phone
-                });
-
-                // 4. Manually update User state with new name (Optimistic update)
-                // This avoids calling checkAuth() which might fail if cookies aren't ready or network is flaky
-                const updatedUser: User = {
-                    ...userData,
-                    name: name
-                };
-                setUser(updatedUser);
-            } else {
-                // For other roles, just use what login returned
-                setUser(userData);
             }
 
             // 5. Redirect based on role
@@ -218,12 +220,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
             await api.post("/logout");
             localStorage.removeItem("access_token");
+            document.cookie = "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
             setUser(null);
             router.push("/login");
         } catch (error) {
             console.error("Logout failed:", error);
             // Even if logout fails server-side, clear client state
             localStorage.removeItem("access_token");
+            document.cookie = "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
             setUser(null);
             router.push("/login");
         }
@@ -233,8 +237,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const authRoutes = ["/login", "/signup", "/verify-otp"];
 
     useEffect(() => {
+        // Only run protection logic if auth check is complete
+
         if (!isLoading) {
-            if (user && authRoutes.includes(pathname)) {
+            const isAuthRoute = authRoutes.includes(pathname);
+            const isPublicProviderRoute = pathname.startsWith("/provider/onboarding") || pathname.startsWith("/provider/verify-email");
+            const isProtectedRoute = protectedRoutes.some(route => pathname === route || pathname.startsWith(`${route}/`));
+
+            if (user && isAuthRoute) {
+                // User is logged in but trying to access login/signup page - redirect to dashboard
+
                 if (user.role === "ADMIN") {
                     router.push("/admin/dashboard");
                 } else if (user.role === "SERVICE_PROVIDER" || user.role === "PROVIDER") {
@@ -242,17 +254,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 } else {
                     router.push("/customer/dashboard");
                 }
-            }
+            } else if (!user && isProtectedRoute && !isPublicProviderRoute) {
+                // User is not logged in and trying to access protected route - redirect to login
 
-            // Simple protection: generic check. Middleware handles specific role checks better
-            // Exclude public provider routes
-            const isPublicProviderRoute = pathname.startsWith("/provider/onboarding") || pathname.startsWith("/provider/verify-email");
-
-            if (!user && !isPublicProviderRoute && (protectedRoutes.some(route => pathname.startsWith(route)))) {
                 router.push("/login");
             }
         }
-    }, [user, isLoading, pathname]);
+    }, [user, isLoading, pathname, router]);
 
     return (
         <AuthContext.Provider

@@ -5,9 +5,10 @@ import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
 import {
     User, Mail, Phone, MapPin, Briefcase, Calendar,
-    FileText, CheckCircle, XCircle, Clock, ShieldCheck
+    FileText, CheckCircle, XCircle, Clock, ShieldCheck, ArrowLeft
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 interface ProviderProfile {
     id: number;
@@ -122,7 +123,12 @@ export default function ProviderProfilePage() {
             {/* Header */}
             <div className="bg-white shadow-sm sticky top-0 z-30">
                 <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-                    <h1 className="text-xl font-bold text-gray-900">My Profile</h1>
+                    <div className="flex items-center gap-4">
+                        <Link href="/provider/dashboard" className="p-2 -ml-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 rounded-full transition-colors" title="Back to Dashboard">
+                            <ArrowLeft className="w-5 h-5" />
+                        </Link>
+                        <h1 className="text-xl font-bold text-gray-900">My Profile</h1>
+                    </div>
                     <button
                         onClick={logout}
                         className="text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg transition"
@@ -201,7 +207,7 @@ export default function ProviderProfilePage() {
                                     <div className="flex items-center gap-3 text-sm">
                                         <Mail className="w-4 h-4 text-gray-400" />
                                         <span className="text-gray-600">{profile.email}</span>
-                                        {profile.isEmailVerified && <CheckCircle className="w-3 h-3 text-green-500" title="Verified" />}
+                                        {profile.isEmailVerified && <span title="Verified" className="flex items-center"><CheckCircle className="w-3 h-3 text-green-500" /></span>}
                                     </div>
                                     <div className="flex items-center gap-3 text-sm">
                                         <Phone className="w-4 h-4 text-gray-400" />

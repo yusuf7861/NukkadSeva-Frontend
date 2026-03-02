@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
+import Image from "next/image";
 
 export default function ChatPage() {
     const { user } = useAuth();
@@ -84,9 +85,9 @@ export default function ChatPage() {
                 {/* Profile Footer */}
                 <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-slate-300 dark:bg-slate-700 flex items-center justify-center overflow-hidden">
+                        <div className="relative w-10 h-10 rounded-full bg-slate-300 dark:bg-slate-700 flex items-center justify-center overflow-hidden">
                             {user?.avatar ? (
-                                <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+                                <Image src={user.avatar} alt="Profile" fill sizes="40px" className="object-cover" />
                             ) : (
                                 <span className="material-symbols-outlined text-slate-500">person</span>
                             )}
