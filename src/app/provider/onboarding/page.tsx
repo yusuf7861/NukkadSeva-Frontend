@@ -117,9 +117,12 @@ export default function ProviderOnboardingPage() {
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-2 group">
                         <div className="bg-primary-50 p-2 rounded-xl group-hover:bg-primary-100 transition-colors">
-                            <Image src="/logo.svg" alt="NukkadSeva Logo" width={28} height={28} className="object-contain" />
+                            <Image src="/brand-logo.png" alt="NukkadSeva" width={28} height={28} className="object-contain" />
                         </div>
-                        <h2 className="text-xl font-extrabold tracking-tight text-gray-900 group-hover:text-primary-600 transition-colors">NukkadSeva Onboarding</h2>
+                        <div className="flex flex-col">
+                            <Image src="/brand-text.png" alt="NukkadSeva" width={110} height={26} className="h-5 w-auto object-contain" />
+                            <span className="text-[10px] font-semibold text-primary-500 uppercase tracking-wider">Provider Onboarding</span>
+                        </div>
                     </Link>
                 </div>
             </header>

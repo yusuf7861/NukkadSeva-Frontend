@@ -1,0 +1,5 @@
+# Admin panel is a separate frontend application deployed independently
+admin-panel/
+
+# Backend is also separate
+NukkadSeva-backend/

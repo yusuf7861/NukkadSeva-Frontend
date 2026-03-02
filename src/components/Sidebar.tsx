@@ -58,10 +58,14 @@ export default function Sidebar() {
                 <div className="flex flex-col h-full">
                     {/* Header */}
                     <div className="flex items-center justify-between h-14 px-3 border-b border-gray-200">
-                        {!isCollapsed && (
-                            <Link href="/" className="flex items-center gap-2">
-                                <Image src="/logo.svg" alt="NukkadSeva Logo" width={28} height={28} className="object-contain" />
-                                <span className="text-lg font-bold text-primary-600">NukkadSeva</span>
+                        {isCollapsed ? (
+                            <Link href="/" className="flex items-center justify-center">
+                                <Image src="/brand-logo.png" alt="NukkadSeva" width={28} height={28} className="object-contain" />
+                            </Link>
+                        ) : (
+                            <Link href="/" className="flex items-center gap-1.5">
+                                <Image src="/brand-logo.png" alt="NukkadSeva Icon" width={28} height={28} className="object-contain" />
+                                <Image src="/brand-text.png" alt="NukkadSeva" width={100} height={28} className="h-5 w-auto object-contain" />
                             </Link>
                         )}
                         <button

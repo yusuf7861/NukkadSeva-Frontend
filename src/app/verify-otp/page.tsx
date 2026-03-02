@@ -70,9 +70,9 @@ export default function VerifyOtpPage() {
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
             <div className="w-full max-w-md">
                 {/* Logo */}
-                <Link href="/" className="flex items-center justify-center gap-2 mb-8">
-                    <Image src="/logo.svg" alt="NukkadSeva Logo" width={48} height={48} className="object-contain" />
-                    <span className="text-2xl font-bold text-gray-900">NukkadSeva</span>
+                <Link href="/" className="flex items-center justify-center gap-1.5 mb-8">
+                    <Image src="/brand-logo.png" alt="NukkadSeva" width={40} height={40} className="object-contain" />
+                    <Image src="/brand-text.png" alt="NukkadSeva" width={120} height={34} className="h-7 w-auto object-contain" />
                 </Link>
 
                 <div className="bg-white rounded-2xl shadow-lg p-8">
