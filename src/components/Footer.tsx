@@ -9,9 +9,9 @@ export default function Footer() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
                     {/* Brand */}
                     <div className="col-span-2 md:col-span-1">
-                        <div className="flex items-center gap-2 mb-3">
-                            <Image src="/logo.svg" alt="NukkadSeva Logo" width={24} height={24} className="object-contain" />
-                            <h3 className="text-lg font-bold text-white">NukkadSeva</h3>
+                        <div className="flex items-center gap-1.5 mb-3">
+                            <Image src="/brand-logo.png" alt="NukkadSeva Icon" width={28} height={28} className="object-contain" />
+                            <Image src="/brand-text.png" alt="NukkadSeva" width={110} height={28} className="h-6 w-auto object-contain brightness-0 invert" />
                         </div>
                         <p className="text-sm text-gray-400 mb-4 leading-relaxed">
                             Your trusted platform for local home services. Connect with verified professionals.

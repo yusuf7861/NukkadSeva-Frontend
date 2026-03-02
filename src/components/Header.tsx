@@ -51,14 +51,24 @@ export default function Header() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16 md:h-20">
                     {/* Brand Logo */}
-                    <Link href="/" className="flex items-center gap-2 shrink-0 group transition-transform hover:scale-[1.02] active:scale-95">
-                        <img
+                    <Link href="/" className="flex items-center gap-1.5 shrink-0 group transition-transform hover:scale-[1.02] active:scale-95">
+                        <Image
                             src="/brand-logo.png"
-                            alt="NukkadSeva Logo"
-                            className="h-10 md:h-12 w-auto object-contain"
+                            alt="NukkadSeva Icon"
+                            width={40}
+                            height={40}
+                            className="h-9 md:h-11 w-auto object-contain"
+                            priority
+                        />
+                        <Image
+                            src="/brand-text.png"
+                            alt="NukkadSeva"
+                            width={130}
+                            height={40}
+                            className="h-7 md:h-9 w-auto object-contain"
+                            priority
                         />
                     </Link>
-
                     {/* Desktop Navigation */}
                     <nav className="hidden md:flex items-center space-x-1 lg:space-x-2 border border-gray-200/50 bg-white/50 px-2 py-1.5 rounded-2xl shadow-sm">
                         <Link href="/" className="px-4 py-2 rounded-xl text-sm font-semibold text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">

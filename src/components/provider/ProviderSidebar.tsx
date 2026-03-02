@@ -34,11 +34,11 @@ export default function ProviderSidebar() {
             {/* Sidebar */}
             <aside className={`w-64 border-r border-gray-200 bg-white flex flex-col shrink-0 h-screen fixed lg:static top-0 z-50 transition-transform duration-200 ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
                 <div className="p-6 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                        <Image src="/logo.svg" alt="NukkadSeva Logo" width={40} height={40} className="object-contain" />
+                    <div className="flex items-center gap-2">
+                        <Image src="/brand-logo.png" alt="NukkadSeva Icon" width={36} height={36} className="object-contain" />
                         <div>
-                            <h1 className="text-[16px] font-bold leading-none text-gray-900">NukkadSeva</h1>
-                            <p className="text-[10px] text-primary-500 font-semibold uppercase tracking-wider mt-1">Verified Provider</p>
+                            <Image src="/brand-text.png" alt="NukkadSeva" width={100} height={22} className="h-5 w-auto object-contain" />
+                            <p className="text-[10px] text-primary-500 font-semibold uppercase tracking-wider mt-0.5">Verified Provider</p>
                         </div>
                     </div>
                     {/* Close Button for Mobile */}

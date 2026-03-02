@@ -60,9 +60,9 @@ export default function LoginPage() {
                 >
                     <Link href="/" className="flex items-center gap-2 mb-10 group w-fit">
                         <div className="bg-primary-50 p-2 rounded-xl group-hover:bg-primary-100 transition-colors">
-                            <Image src="/logo.svg" alt="NukkadSeva Logo" width={32} height={32} className="object-contain" />
+                            <Image src="/brand-logo.png" alt="NukkadSeva" width={32} height={32} className="object-contain" />
                         </div>
-                        <span className="text-2xl font-extrabold tracking-tight text-gray-900 group-hover:text-primary-600 transition-colors">NukkadSeva</span>
+                        <Image src="/brand-text.png" alt="NukkadSeva" width={130} height={36} className="h-7 w-auto object-contain" />
                     </Link>
 
                     <div className="mb-8">
