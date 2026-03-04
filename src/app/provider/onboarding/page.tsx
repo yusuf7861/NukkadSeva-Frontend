@@ -9,12 +9,73 @@ import { useRouter } from "next/navigation";
 
 import toast from "react-hot-toast";
 
+const INDIAN_STATES_CITIES: Record<string, string[]> = {
+    "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Tirupati", "Kakinada"],
+    "Arunachal Pradesh": ["Itanagar", "Naharlagun", "Tawang"],
+    "Assam": ["Guwahati", "Dibrugarh", "Jorhat", "Silchar"],
+    "Bihar": ["Patna", "Gaya", "Muzaffarpur", "Bhagalpur"],
+    "Chhattisgarh": ["Raipur", "Bhilai", "Bilaspur", "Korba"],
+    "Delhi": ["New Delhi", "Dwarka", "Rohini", "Saket"],
+    "Goa": ["Panaji", "Margao", "Vasco da Gama"],
+    "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Gandhinagar"],
+    "Haryana": ["Gurugram", "Faridabad", "Panipat", "Ambala", "Karnal"],
+    "Himachal Pradesh": ["Shimla", "Manali", "Dharamshala", "Mandi"],
+    "Jharkhand": ["Ranchi", "Jamshedpur", "Dhanbad", "Bokaro"],
+    "Karnataka": ["Bengaluru", "Mysuru", "Mangaluru", "Hubli", "Belgaum"],
+    "Kerala": ["Thiruvananthapuram", "Kochi", "Kozhikode", "Thrissur"],
+    "Madhya Pradesh": ["Bhopal", "Indore", "Jabalpur", "Gwalior"],
+    "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Thane", "Nashik", "Aurangabad"],
+    "Manipur": ["Imphal", "Thoubal", "Bishnupur"],
+    "Meghalaya": ["Shillong", "Tura", "Jowai"],
+    "Mizoram": ["Aizawl", "Lunglei"],
+    "Nagaland": ["Kohima", "Dimapur"],
+    "Odisha": ["Bhubaneswar", "Cuttack", "Rourkela", "Berhampur"],
+    "Punjab": ["Chandigarh", "Ludhiana", "Amritsar", "Jalandhar", "Patiala"],
+    "Rajasthan": ["Jaipur", "Jodhpur", "Udaipur", "Kota", "Ajmer"],
+    "Sikkim": ["Gangtok", "Namchi"],
+    "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Salem", "Tiruchirappalli"],
+    "Telangana": ["Hyderabad", "Warangal", "Nizamabad", "Karimnagar"],
+    "Tripura": ["Agartala", "Udaipur"],
+    "Uttar Pradesh": ["Lucknow", "Noida", "Varanasi", "Agra", "Kanpur", "Prayagraj"],
+    "Uttarakhand": ["Dehradun", "Haridwar", "Rishikesh", "Nainital"],
+    "West Bengal": ["Kolkata", "Howrah", "Durgapur", "Siliguri", "Asansol"],
+};
+
+const AVAILABILITY_OPTIONS = [
+    "Monday-Friday, 9AM-5PM",
+    "Monday-Friday, 9AM-9PM",
+    "Monday-Saturday, 9AM-6PM",
+    "Monday-Saturday, 8AM-8PM",
+    "All Days, 9AM-5PM",
+    "All Days, 8AM-10PM",
+    "Weekends Only",
+    "24/7 Available",
+    "Flexible / On-Call",
+];
+
+const LANGUAGES = [
+    "English",
+    "Hindi",
+    "Bengali",
+    "Telugu",
+    "Marathi",
+    "Tamil",
+    "Urdu",
+    "Gujarati",
+    "Kannada",
+    "Malayalam",
+    "Odia",
+    "Punjabi",
+    "Assamese",
+];
+
 export default function ProviderOnboardingPage() {
     const { registerProvider } = useAuth();
     const router = useRouter();
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [langDropdownOpen, setLangDropdownOpen] = useState(false);
 
     const [formData, setFormData] = useState<ProviderRegistrationData>({
         fullName: "",
@@ -37,7 +98,7 @@ export default function ProviderOnboardingPage() {
         policeVerification: null,
         bio: "",
         profilePicture: null,
-        availability: "Monday-Friday, 9AM-5PM",
+        availability: "",
         agreeToS: false,
         agreeToBgCheck: false
     });
@@ -46,10 +107,24 @@ export default function ProviderOnboardingPage() {
         const { name, value, type } = e.target;
         const checked = (e.target as HTMLInputElement).checked;
 
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value
-        }));
+        setFormData(prev => {
+            const updated = { ...prev, [name]: type === 'checkbox' ? checked : value };
+            // Reset city when state changes
+            if (name === 'state') {
+                updated.city = '';
+            }
+            return updated;
+        });
+    };
+
+    const toggleLanguage = (lang: string) => {
+        setFormData(prev => {
+            const current = prev.languages ? prev.languages.split(", ").filter(Boolean) : [];
+            const updated = current.includes(lang)
+                ? current.filter(l => l !== lang)
+                : [...current, lang];
+            return { ...prev, languages: updated.join(", ") };
+        });
     };
 
     const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -187,16 +262,26 @@ export default function ProviderOnboardingPage() {
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                         <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-2">City</label>
-                                            <input name="city" value={formData.city} onChange={handleChange} required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 outline-none focus:ring-2 focus:ring-primary-500" placeholder="New York" />
+                                            <label className="block text-sm font-semibold text-gray-700 mb-2">State</label>
+                                            <select name="state" value={formData.state} onChange={handleChange} required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 appearance-none">
+                                                <option value="">Select State</option>
+                                                {Object.keys(INDIAN_STATES_CITIES).map(state => (
+                                                    <option key={state} value={state}>{state}</option>
+                                                ))}
+                                            </select>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-2">State</label>
-                                            <input name="state" value={formData.state} onChange={handleChange} required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 outline-none focus:ring-2 focus:ring-primary-500" placeholder="NY" />
+                                            <label className="block text-sm font-semibold text-gray-700 mb-2">City</label>
+                                            <select name="city" value={formData.city} onChange={handleChange} required disabled={!formData.state} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 appearance-none disabled:opacity-50 disabled:cursor-not-allowed">
+                                                <option value="">{formData.state ? "Select City" : "Select state first"}</option>
+                                                {formData.state && INDIAN_STATES_CITIES[formData.state]?.map(city => (
+                                                    <option key={city} value={city}>{city}</option>
+                                                ))}
+                                            </select>
                                         </div>
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 mb-2">Pincode</label>
-                                            <input name="pincode" value={formData.pincode} onChange={handleChange} required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 outline-none focus:ring-2 focus:ring-primary-500" placeholder="10001" />
+                                            <input name="pincode" value={formData.pincode} onChange={handleChange} required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 outline-none focus:ring-2 focus:ring-primary-500" placeholder="110001" />
                                         </div>
                                     </div>
                                     <div>
@@ -233,9 +318,50 @@ export default function ProviderOnboardingPage() {
                                             <input name="experience" type="number" min="0" value={formData.experience} onChange={handleChange} required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 outline-none focus:ring-2 focus:ring-primary-500" />
                                         </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Languages (Comma separated)</label>
-                                        <input name="languages" value={formData.languages} onChange={handleChange} required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 outline-none focus:ring-2 focus:ring-primary-500" placeholder="English, Spanish" />
+                                    <div className="relative">
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Languages Spoken</label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+                                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-left outline-none focus:ring-2 focus:ring-primary-500 flex items-center justify-between"
+                                        >
+                                            <span className="flex flex-wrap gap-1.5">
+                                                {formData.languages ? (
+                                                    formData.languages.split(", ").filter(Boolean).map(lang => (
+                                                        <span key={lang} className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-primary-100 text-primary-700">
+                                                            {lang}
+                                                        </span>
+                                                    ))
+                                                ) : (
+                                                    <span className="text-gray-400">Select languages...</span>
+                                                )}
+                                            </span>
+                                            <svg className={`w-4 h-4 text-gray-500 transition-transform ${langDropdownOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </button>
+                                        {langDropdownOpen && (
+                                            <div className="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                                {LANGUAGES.map(lang => {
+                                                    const selected = formData.languages.split(", ").filter(Boolean).includes(lang);
+                                                    return (
+                                                        <label
+                                                            key={lang}
+                                                            className="flex items-center px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors"
+                                                        >
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={selected}
+                                                                onChange={() => toggleLanguage(lang)}
+                                                                className="w-4 h-4 text-primary-500 border-gray-300 rounded focus:ring-primary-500"
+                                                            />
+                                                            <span className="ml-3 text-sm text-gray-700">{lang}</span>
+                                                        </label>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                        <input type="hidden" name="languages" value={formData.languages} required />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-700 mb-2">Bio / Description</label>
@@ -248,7 +374,12 @@ export default function ProviderOnboardingPage() {
                                         </div>
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 mb-2">Availability</label>
-                                            <input name="availability" value={formData.availability} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 outline-none focus:ring-2 focus:ring-primary-500" placeholder="e.g. Mon-Fri 9-5" />
+                                            <select name="availability" value={formData.availability} onChange={handleChange} required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 appearance-none">
+                                                <option value="">Select Availability</option>
+                                                {AVAILABILITY_OPTIONS.map(opt => (
+                                                    <option key={opt} value={opt}>{opt}</option>
+                                                ))}
+                                            </select>
                                         </div>
                                     </div>
                                 </div>

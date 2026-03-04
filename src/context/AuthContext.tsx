@@ -10,7 +10,8 @@ interface AuthContextType {
     user: User | null;
     isAuthenticated: boolean;
     isLoading: boolean;
-    login: (email: string, password: string, role?: string, shouldRedirect?: boolean) => Promise<User | null>;
+    login: (email: string, password: string, shouldRedirect?: boolean) => Promise<User | null>;
+    googleLogin: (idToken: string) => Promise<User | null>;
     signup: (name: string, email: string, password: string, phone: string) => Promise<void>;
     logout: () => Promise<void>;
     registerProvider: (data: FormData) => Promise<void>;
@@ -95,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    const login = async (email: string, password: string, role?: string, shouldRedirect: boolean = true) => {
+    const login = async (email: string, password: string, shouldRedirect: boolean = true) => {
         setIsLoading(true);
         try {
             const { data } = await api.post<AuthResponse>("/login", { email, password });
@@ -130,10 +131,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 console.warn("Failed to fetch customer profile", e);
             }
 
-            if (role && userData.role !== role) {
-                console.warn(`Warning: User role ${userData.role} does not match expected ${role}`);
-            }
-
             setUser(userData);
 
             if (shouldRedirect) {
@@ -155,6 +152,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    const googleLogin = async (idToken: string): Promise<User> => {
+        setIsLoading(true);
+        try {
+            const { data } = await api.post<AuthResponse>("/auth/google", { idToken });
+
+            localStorage.setItem("access_token", data.access_token);
+            document.cookie = `access_token=${data.access_token}; path=/; max-age=604800; SameSite=Lax`;
+
+            const decoded = jwtDecode<DecodedToken>(data.access_token);
+
+            let userData: User = {
+                username: decoded.sub,
+                email: decoded.sub,
+                role: decoded.role,
+                token: data.access_token,
+                id: decoded.user_id,
+            };
+
+            // Fetch full profile details for customers
+            try {
+                if (decoded.role === "CUSTOMER" || decoded.role === "USER") {
+                    const { data: profile } = await api.get<CustomerProfile>("/customer/profile");
+                    userData = {
+                        ...userData,
+                        name: profile.name || userData.username,
+                        email: profile.email || userData.email,
+                        avatar: profile.profilePicture
+                    };
+                }
+            } catch (e) {
+                console.warn("Failed to fetch profile after Google login", e);
+            }
+
+            setUser(userData);
+
+            // Auto-route by role
+            if (userData.role === "ADMIN") {
+                router.push("/admin/dashboard");
+            } else if (userData.role === "SERVICE_PROVIDER" || userData.role === "PROVIDER") {
+                router.push("/provider/dashboard");
+            } else {
+                router.push("/customer/dashboard");
+            }
+
+            setIsLoading(false);
+            return userData;
+        } catch (error) {
+            console.error("Google login failed:", error);
+            setIsLoading(false);
+            throw error;
+        }
+    };
+
     const signup = async (name: string, email: string, password: string, phone: string) => {
         setIsLoading(true);
         try {
@@ -167,7 +217,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             });
 
             // 2. Login to get token (without redirecting yet)
-            const userData = await login(email, password, undefined, false);
+            const userData = await login(email, password, false);
 
             if (!userData) {
                 throw new Error("Auto-login failed after registration");
@@ -268,6 +318,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 isAuthenticated: !!user,
                 isLoading,
                 login,
+                googleLogin,
                 signup,
                 logout,
                 registerProvider,
