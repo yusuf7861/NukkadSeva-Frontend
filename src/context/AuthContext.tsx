@@ -101,8 +101,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const { data } = await api.post<AuthResponse>("/login", { email, password });
 
             localStorage.setItem("access_token", data.access_token);
-            // Set cookie for Next.js Middleware with max-age (e.g. 7 days = 604800 seconds)
-            document.cookie = `access_token=${data.access_token}; path=/; max-age=604800; SameSite=Lax`;
+            const isSecureContext = typeof window !== "undefined" && window.location.protocol === "https:";
+            const secureFlag = isSecureContext ? "; Secure" : "";
+            document.cookie = `access_token=${data.access_token}; path=/; max-age=604800; SameSite=Lax${secureFlag}`;
 
             const decoded = jwtDecode<DecodedToken>(data.access_token);
 
