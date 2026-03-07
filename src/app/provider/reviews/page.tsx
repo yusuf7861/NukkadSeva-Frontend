@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import ProviderSidebar from "@/components/provider/ProviderSidebar";
+import api from "@/lib/api";
 import { ReviewResponseDto } from "@/types/backend";
 
 export default function ProviderReviewsPage() {
@@ -23,20 +24,9 @@ export default function ProviderReviewsPage() {
                     return;
                 }
 
-                const res = await fetch("http://localhost:8080/api/reviews/provider", {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
+                const res = await api.get("/reviews/provider");
 
-                if (!res.ok) {
-                    throw new Error("Failed to fetch reviews");
-                }
-
-                const data = await res.json();
-                if (data.status && data.status !== 200 && data.message) {
-                    throw new Error(data.message);
-                }
+                const data = res.data;
                 const fetchedReviews = Array.isArray(data) ? data : [];
                 setReviews(fetchedReviews);
 

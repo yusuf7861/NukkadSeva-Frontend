@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import ProviderSidebar from "@/components/provider/ProviderSidebar";
+import api from "@/lib/api";
 import { PastServiceItem } from "@/types/backend";
 
 export default function ProviderPastJobsPage() {
@@ -27,17 +28,9 @@ export default function ProviderPastJobsPage() {
                     return;
                 }
 
-                const res = await fetch("http://localhost:8080/api/booking/provider", {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
+                const res = await api.get("/booking/provider");
 
-                if (!res.ok) {
-                    throw new Error("Failed to fetch past jobs");
-                }
-
-                const data: any[] = await res.json();
+                const data: any[] = res.data;
 
                 // Filter and sort for completed and cancelled jobs
                 const historyJobs = data
