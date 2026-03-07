@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             };
 
             // If user is a customer, fetch profile to get name and avatar
-            if (decoded.role === "CUSTOMER" || decoded.role === "USER") {
+            if (decoded.role === "CUSTOMER") {
                 try {
 
                     const { data: profile } = await api.get<CustomerProfileResponse>("/customer/profile");
@@ -118,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             // Fetch full profile details
             try {
-                if (decoded.role === "CUSTOMER" || decoded.role === "USER") {
+                if (decoded.role === "CUSTOMER") {
                     const { data: profile } = await api.get<CustomerProfile>("/customer/profile");
                     userData = {
                         ...userData,
@@ -136,7 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (shouldRedirect) {
                 if (userData.role === "ADMIN") {
                     router.push("/admin/dashboard");
-                } else if (userData.role === "SERVICE_PROVIDER" || userData.role === "PROVIDER") {
+                } else if (userData.role === "SERVICE_PROVIDER") {
                     router.push("/provider/dashboard");
                 } else {
                     router.push("/customer/dashboard");
@@ -172,7 +172,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             // Fetch full profile details for customers
             try {
-                if (decoded.role === "CUSTOMER" || decoded.role === "USER") {
+                if (decoded.role === "CUSTOMER") {
                     const { data: profile } = await api.get<CustomerProfile>("/customer/profile");
                     userData = {
                         ...userData,
@@ -190,7 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // Auto-route by role
             if (userData.role === "ADMIN") {
                 router.push("/admin/dashboard");
-            } else if (userData.role === "SERVICE_PROVIDER" || userData.role === "PROVIDER") {
+            } else if (userData.role === "SERVICE_PROVIDER") {
                 router.push("/provider/dashboard");
             } else {
                 router.push("/customer/dashboard");
@@ -226,7 +226,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // 5. Redirect based on role
             if (userData.role === "ADMIN") {
                 router.push("/admin/dashboard");
-            } else if (userData.role === "SERVICE_PROVIDER" || userData.role === "PROVIDER") {
+            } else if (userData.role === "SERVICE_PROVIDER") {
                 router.push("/provider/dashboard");
             } else {
                 router.push("/customer/dashboard");
@@ -298,7 +298,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
                 if (user.role === "ADMIN") {
                     router.push("/admin/dashboard");
-                } else if (user.role === "SERVICE_PROVIDER" || user.role === "PROVIDER") {
+                } else if (user.role === "SERVICE_PROVIDER") {
                     router.push("/provider/dashboard");
                 } else {
                     router.push("/customer/dashboard");

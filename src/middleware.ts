@@ -32,7 +32,7 @@ export function middleware(request: NextRequest) {
 
             if (decoded.role === "ADMIN") {
                 return NextResponse.redirect(new URL('/admin/dashboard', request.url));
-            } else if (decoded.role === "SERVICE_PROVIDER" || decoded.role === "PROVIDER") {
+            } else if (decoded.role === "SERVICE_PROVIDER") {
                 return NextResponse.redirect(new URL('/provider/dashboard', request.url));
             } else {
                 return NextResponse.redirect(new URL('/customer/dashboard', request.url));
@@ -60,7 +60,7 @@ export function middleware(request: NextRequest) {
                 return NextResponse.redirect(new URL('/login', request.url));
             }
 
-            if (path.startsWith('/provider') && !isPublicProviderPath && (decoded.role !== 'SERVICE_PROVIDER' && decoded.role !== 'PROVIDER')) {
+            if ((path === '/provider' || path.startsWith('/provider/')) && !isPublicProviderPath && decoded.role !== 'SERVICE_PROVIDER') {
                 return NextResponse.redirect(new URL('/login', request.url));
             }
 
