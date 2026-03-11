@@ -119,12 +119,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // Fetch full profile details
             try {
                 if (decoded.role === "CUSTOMER") {
-                    const { data: profile } = await api.get<CustomerProfile>("/customer/profile");
+                    const { data: profile } = await api.get<CustomerProfileResponse>("/customer/profile");
                     userData = {
                         ...userData,
-                        name: profile.name || userData.username,
+                        name: profile.fullName || userData.username,
                         email: profile.email || userData.email,
-                        avatar: profile.profilePicture
+                        avatar: profile.photograph
                     };
                 }
             } catch (e) {
@@ -173,12 +173,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // Fetch full profile details for customers
             try {
                 if (decoded.role === "CUSTOMER") {
-                    const { data: profile } = await api.get<CustomerProfile>("/customer/profile");
+                    const { data: profile } = await api.get<CustomerProfileResponse>("/customer/profile");
                     userData = {
                         ...userData,
-                        name: profile.name || userData.username,
+                        name: profile.fullName || userData.username,
                         email: profile.email || userData.email,
-                        avatar: profile.profilePicture
+                        avatar: profile.photograph
                     };
                 }
             } catch (e) {
