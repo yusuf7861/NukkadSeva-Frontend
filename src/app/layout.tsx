@@ -10,6 +10,9 @@ const interClassName = "font-sans";
 export const metadata: Metadata = {
     title: "NukkadSeva - Local Service Finder",
     description: "Find trusted local service providers for all your home needs",
+    icons: {
+        icon: "/brand-logo.png",
+    },
 };
 
 export default function RootLayout({

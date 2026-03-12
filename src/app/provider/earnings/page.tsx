@@ -1,16 +1,8 @@
 "use client";
 
 import ProviderSidebar from "@/components/provider/ProviderSidebar";
-import { useAuth } from "@/context/AuthContext";
-import EarningsStats from "@/components/provider/earnings/EarningsStats";
-import IncomeTrendsChart from "@/components/provider/earnings/IncomeTrendsChart";
-import RecentPayoutsTable from "@/components/provider/earnings/RecentPayoutsTable";
-import LinkedAccountCard from "@/components/provider/earnings/LinkedAccountCard";
-import Image from "next/image";
 
 export default function ProviderEarningsPage() {
-    const { user } = useAuth();
-
     return (
         <div className="flex bg-gray-50 font-sans text-gray-900 min-h-screen">
             <ProviderSidebar />
@@ -21,47 +13,30 @@ export default function ProviderEarningsPage() {
                         <h2 className="text-gray-900 text-lg font-bold leading-tight tracking-[-0.015em] hidden md:block">Earnings & Payouts</h2>
                         <h2 className="text-gray-900 text-lg font-bold leading-tight tracking-[-0.015em] md:hidden pl-10">Earnings</h2>
                     </div>
-                    <div className="flex flex-1 justify-end gap-4 md:gap-8">
-                        <div className="flex gap-2">
-                            <button className="flex items-center justify-center rounded-lg h-10 w-10 bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">
-                                <span className="material-symbols-outlined">notifications</span>
-                            </button>
-                            <div className="size-10 rounded-full bg-gray-200 overflow-hidden border border-gray-200 relative">
-                                {user?.avatar ? (
-                                    <Image src={user.avatar} alt="Profile" fill sizes="40px" className="object-cover" />
-                                ) : (
-                                    <span className="material-symbols-outlined absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-400">person</span>
-                                )}
-                            </div>
-                        </div>
-                    </div>
                 </header>
 
-                <div className="p-4 md:p-8 max-w-[1200px] mx-auto">
-                    {/* Breadcrumbs & Title */}
-                    <div className="flex flex-col gap-1 mb-6 md:mb-8">
-                        <div className="flex items-center gap-2 text-gray-500 text-sm font-medium">
-                            <span className="hover:text-primary-500 cursor-pointer hidden md:inline">Financial Management</span>
-                            <span className="material-symbols-outlined text-xs hidden md:inline">chevron_right</span>
-                            <span className="text-gray-900">Earnings & Payouts</span>
+                {/* Coming Soon */}
+                <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] px-4">
+                    <div className="relative mb-8">
+                        <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center">
+                            <span className="material-symbols-outlined text-primary-400" style={{ fontSize: '56px' }}>account_balance_wallet</span>
                         </div>
-                        <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4 mt-4">
-                            <div>
-                                <h1 className="text-gray-900 text-3xl md:text-4xl font-black leading-tight tracking-[-0.033em]">Earnings Overview</h1>
-                                <p className="text-gray-500 text-lg font-normal leading-normal">Track your service revenue and withdraw funds to your account.</p>
-                            </div>
-                            <button className="flex items-center justify-center gap-2 rounded-xl h-12 px-6 bg-primary-500 text-white text-base font-bold shadow-lg shadow-primary-500/20 hover:bg-primary-600 transition-all active:scale-95">
-                                <span className="material-symbols-outlined">account_balance_wallet</span>
-                                <span>Request Payout</span>
-                            </button>
+                        <div className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-amber-400 flex items-center justify-center shadow-lg shadow-amber-400/30">
+                            <span className="material-symbols-outlined text-white" style={{ fontSize: '18px' }}>schedule</span>
                         </div>
                     </div>
 
-                    <EarningsStats />
-                    <IncomeTrendsChart />
-                    <RecentPayoutsTable />
-                    <LinkedAccountCard />
+                    <h1 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight text-center">
+                        Coming Soon
+                    </h1>
+                    <p className="text-gray-500 text-base md:text-lg mt-3 text-center max-w-md leading-relaxed">
+                        We&apos;re building a powerful earnings dashboard so you can track revenue, request payouts, and manage your finances — all in one place.
+                    </p>
 
+                    <div className="flex items-center gap-3 mt-8 px-5 py-3 rounded-xl bg-primary-50 border border-primary-100">
+                        <span className="material-symbols-outlined text-primary-500" style={{ fontSize: '20px' }}>notifications_active</span>
+                        <span className="text-sm font-medium text-primary-700">You&apos;ll be notified when this feature is ready.</span>
+                    </div>
                 </div>
             </main>
         </div>

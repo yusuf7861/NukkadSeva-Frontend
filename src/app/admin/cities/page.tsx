@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import {
     MapPin, Plus, Trash2, ToggleLeft, ToggleRight, Loader2, X, ChevronDown, ChevronUp,
 } from "lucide-react";
+import { State, City as CSCity } from "country-state-city";
 
 interface Pincode {
     id: number;
@@ -31,8 +32,13 @@ export default function CitiesPage() {
 
     // Add city form
     const [cityName, setCityName] = useState("");
-    const [state, setState] = useState("");
+    const [stateCode, setStateCode] = useState("");
+    const [stateName, setStateName] = useState("");
     const [pincodes, setPincodes] = useState([{ pincode: "", areaName: "" }]);
+    
+    // Country-State-City data
+    const indianStates = State.getStatesOfCountry("IN");
+    const [availableCities, setAvailableCities] = useState<string[]>([]);
 
     // Add pincode form
     const [addPincodeCity, setAddPincodeCity] = useState<number | null>(null);
@@ -52,18 +58,18 @@ export default function CitiesPage() {
     useEffect(() => { fetchCities(); }, []);
 
     const handleAddCity = async () => {
-        if (!cityName.trim() || !state.trim()) { toast.error("City name and state are required"); return; }
+        if (!cityName.trim() || !stateName.trim()) { toast.error("City name and state are required"); return; }
         const validPincodes = pincodes.filter(p => p.pincode.trim());
         if (validPincodes.length === 0) { toast.error("Add at least one pincode"); return; }
         setActionLoading("addCity");
         try {
             await api.post("/admin/cities", {
                 cityName: cityName.trim(),
-                state: state.trim(),
+                state: stateName.trim(),
                 pincodes: validPincodes,
             });
             toast.success("City added successfully!");
-            setCityName(""); setState(""); setPincodes([{ pincode: "", areaName: "" }]);
+            setCityName(""); setStateCode(""); setStateName(""); setPincodes([{ pincode: "", areaName: "" }]);
             setShowAddCity(false);
             fetchCities();
         } catch (e: any) {
@@ -270,12 +276,43 @@ export default function CitiesPage() {
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">City Name</label>
-                                    <input value={cityName} onChange={(e) => setCityName(e.target.value)} placeholder="e.g. Mumbai" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">State</label>
+                                    <select 
+                                        value={stateCode} 
+                                        onChange={(e) => {
+                                            const code = e.target.value;
+                                            setStateCode(code);
+                                            const st = indianStates.find(s => s.isoCode === code);
+                                            setStateName(st ? st.name : "");
+                                            setCityName("");
+                                            if (code) {
+                                                const cities = CSCity.getCitiesOfState("IN", code);
+                                                setAvailableCities(cities.map(c => c.name));
+                                            } else {
+                                                setAvailableCities([]);
+                                            }
+                                        }} 
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none pr-8 bg-white" 
+                                    >
+                                        <option value="">Select State</option>
+                                        {indianStates.map((s) => (
+                                            <option key={s.isoCode} value={s.isoCode}>{s.name}</option>
+                                        ))}
+                                    </select>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">State</label>
-                                    <input value={state} onChange={(e) => setState(e.target.value)} placeholder="e.g. Maharashtra" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">City Name</label>
+                                    <select 
+                                        value={cityName} 
+                                        onChange={(e) => setCityName(e.target.value)} 
+                                        disabled={!stateCode}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none pr-8 bg-white disabled:bg-gray-50 disabled:text-gray-400" 
+                                    >
+                                        <option value="">Select City</option>
+                                        {availableCities.map((c, idx) => (
+                                            <option key={idx} value={c}>{c}</option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
 
