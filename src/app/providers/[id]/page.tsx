@@ -137,8 +137,15 @@ export default function ProviderDetailPage({ params }: { params: { id: string } 
             };
 
             await api.post("/booking", bookingRequest);
-            alert("Booking created successfully!");
-            router.push("/bookings");
+            
+            const queryParams = new URLSearchParams({
+                service: selectedService.name,
+                provider: provider.businessName || provider.fullName || "Service Provider",
+                date: selectedDate,
+                time: selectedTime,
+            }).toString();
+            
+            router.push(`/booking-confirmation?${queryParams}`);
         } catch (error) {
             console.error("Booking failed", error);
             alert("Failed to create booking. Please try again.");
