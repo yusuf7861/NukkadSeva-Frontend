@@ -617,7 +617,7 @@ export default function ProviderDashboard() {
                                     <div className="space-y-4">
                                         {todayBookings.map((job) => {
                                             const timeString = new Date(job.bookingDateTime).toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit' });
-                                            const address = job.customer?.address || "Location not provided";
+                                            const address = job.serviceAddress || job.customer?.address || "Location not provided";
                                             return (
                                                 <div key={job.id} className="flex gap-3">
                                                     <div className="w-1 bg-primary-500 rounded-full shrink-0" />
