@@ -11,6 +11,7 @@ import { Star, MapPin, Phone, Clock, Shield, ChevronLeft, CheckCircle, MessageCi
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import AddressSelector from "@/components/AddressSelector";
+import toast from "react-hot-toast";
 
 export default function ProviderDetailPage({ params }: { params: { id: string } }) {
     const router = useRouter();
@@ -18,7 +19,7 @@ export default function ProviderDetailPage({ params }: { params: { id: string } 
     const [provider, setProvider] = useState<DashboardProviderDto | null>(null);
     const [services, setServices] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedService, setSelectedService] = useState<{ name: string, price: number, type: ServiceType, durationMinutes?: number } | null>(null);
+    const [selectedService, setSelectedService] = useState<{ id?: number, name: string, price: number, type: ServiceType, durationMinutes?: number } | null>(null);
     const [selectedDate, setSelectedDate] = useState("");
     const [selectedTime, setSelectedTime] = useState("");
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.CASH_AFTER_SERVICE);
@@ -26,34 +27,7 @@ export default function ProviderDetailPage({ params }: { params: { id: string } 
     const [bookingNote, setBookingNote] = useState("");
     const [isBooking, setIsBooking] = useState(false);
 
-    // Mock services based on category since backend doesn't return detailed services list yet
-    const getServicesForCategory = (category: string) => {
-        const baseServices = [
-            { name: "Consultation / Visitation", price: 199, type: ServiceType.REPAIRS },
-        ];
-
-        switch (category?.toUpperCase()) {
-            case "PLUMBING":
-                return [
-                    ...baseServices,
-                    { name: "Pipe Repair", price: 499, type: ServiceType.PLUMBING },
-                    { name: "Installation", price: 999, type: ServiceType.PLUMBING }
-                ];
-            case "ELECTRICAL":
-                return [
-                    ...baseServices,
-                    { name: "Wiring Check", price: 399, type: ServiceType.ELECTRICAL },
-                    { name: "Switch Installation", price: 150, type: ServiceType.ELECTRICAL }
-                ];
-            case "CLEANING":
-                return [
-                    { name: "Full Home Cleaning", price: 1499, type: ServiceType.CLEANING },
-                    { name: "Kitchen Cleaning", price: 799, type: ServiceType.CLEANING }
-                ];
-            default:
-                return baseServices;
-        }
-    };
+    // Removed mock services
 
     useEffect(() => {
         fetchProvider();
@@ -96,11 +70,9 @@ export default function ProviderDetailPage({ params }: { params: { id: string } 
                 });
                 setServices(fetchedServices);
                 setSelectedService(fetchedServices[0]);
-            } else if (found) {
-                // Fallback to mock services if no active services exist
-                const mockServices = getServicesForCategory(found.serviceCategory);
-                setServices(mockServices);
-                setSelectedService(mockServices[0]);
+            } else {
+                setServices([]);
+                setSelectedService(null);
             }
         } catch (error) {
             console.error("Failed to fetch provider details", error);
@@ -146,9 +118,10 @@ export default function ProviderDetailPage({ params }: { params: { id: string } 
             }).toString();
             
             router.push(`/booking-confirmation?${queryParams}`);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Booking failed", error);
-            alert("Failed to create booking. Please try again.");
+            const errorMessage = error.response?.data?.message || "Failed to create booking. Please try again.";
+            toast.error(errorMessage);
         } finally {
             setIsBooking(false);
         }
@@ -190,8 +163,7 @@ export default function ProviderDetailPage({ params }: { params: { id: string } 
             </div>
         );
     }
-    // Mock availability
-    const availability = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"];
+    // No mock availability, use time input
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -236,15 +208,19 @@ export default function ProviderDetailPage({ params }: { params: { id: string } 
                         <div className="bg-white rounded-lg p-4 shadow-sm">
                             <h2 className="text-sm font-semibold text-gray-900 mb-3">Services</h2>
                             <div className="space-y-2">
-                                {services.map((s) => (
-                                    <div key={s.name} onClick={() => setSelectedService(s)} className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${selectedService?.name === s.name ? "border-primary-500 bg-primary-50" : "border-gray-200 hover:bg-gray-50"}`}>
+                                {services.length > 0 ? services.map((s) => (
+                                    <div key={s.id} onClick={() => setSelectedService(s)} className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${selectedService?.id === s.id ? "border-primary-500 bg-primary-50" : "border-gray-200 hover:bg-gray-50"}`}>
                                         <div>
                                             <p className="text-sm font-medium text-gray-900">{s.name}</p>
                                             {s.durationMinutes && <p className="text-xs text-gray-500">{s.durationMinutes} mins</p>}
                                         </div>
                                         <p className="text-sm font-semibold text-primary-500">₹{s.price}</p>
                                     </div>
-                                ))}
+                                )) : (
+                                    <div className="p-4 text-center text-sm text-gray-500 border border-gray-200 border-dashed rounded-lg">
+                                        This provider currently has no active services listed.
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -268,14 +244,8 @@ export default function ProviderDetailPage({ params }: { params: { id: string } 
                             </div>
 
                             <div className="mb-4">
-                                <label className="block text-xs font-medium text-gray-700 mb-1">Time Slot</label>
-                                <div className="grid grid-cols-3 gap-1.5">
-                                    {availability.map((t) => (
-                                        <button key={t} onClick={() => setSelectedTime(t)} className={`py-1.5 rounded text-xs font-medium transition-colors ${selectedTime === t ? "bg-primary-500 text-white" : "border border-gray-300 text-gray-700 hover:bg-gray-50"}`}>
-                                            {t}
-                                        </button>
-                                    ))}
-                                </div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">Time</label>
+                                <input type="time" value={selectedTime} onChange={(e) => setSelectedTime(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500" />
                             </div>
 
                             {user ? (

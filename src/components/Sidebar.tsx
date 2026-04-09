@@ -10,7 +10,6 @@ import {
     Calendar,
     CreditCard,
     User,
-    Settings,
     LogOut,
     Menu,
     X,
@@ -22,7 +21,6 @@ const menuItems = [
     { icon: Calendar, label: "Bookings", href: "/customer/bookings" },
     { icon: CreditCard, label: "Payments", href: "/customer/payments" },
     { icon: User, label: "Profile", href: "/customer/profile" },
-    { icon: Settings, label: "Settings", href: "/customer/settings" },
 ];
 
 

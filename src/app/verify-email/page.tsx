@@ -43,7 +43,7 @@ export default function VerifyEmailPage() {
                     {/* Verification Form */}
                     <form action="#" className="space-y-8" method="POST">
                         <div className="flex justify-center gap-4">
-                            {/* OTP Inputs (Mocked interactive) */}
+                            {/* OTP Inputs */}
                             {[0, 1, 2, 3].map((i) => (
                                 <input
                                     key={i}

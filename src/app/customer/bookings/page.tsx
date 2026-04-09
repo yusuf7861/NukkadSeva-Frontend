@@ -7,12 +7,14 @@ import { Calendar, Clock, MapPin, Phone, Star, CheckCircle, XCircle } from "luci
 import api from "@/lib/api";
 import { useCustomerSocket } from "@/hooks/useCustomerSocket";
 import toast from "react-hot-toast";
-import Image from "next/image";
+
+const BACKEND_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api").replace(/\/api\/?$/, "");
 
 type BookingType = {
     id: string;
     service: string;
     provider: string;
+    providerBusinessName: string;
     providerImage: string;
     date: string;
     time: string;
@@ -86,15 +88,18 @@ export default function BookingsPage() {
                         id: b.id,
                         service: b.serviceType,
                         provider: b.provider?.name || "Unknown Provider",
-                        providerImage: "https://via.placeholder.com/150", // Backend doesn't return this yet
+                        providerBusinessName: b.provider?.businessName || "",
+                        providerImage: b.provider?.profilePicture
+                            ? (b.provider.profilePicture.startsWith("http") ? b.provider.profilePicture : `${BACKEND_URL}${b.provider.profilePicture}`)
+                            : "",
                         date: dt ? dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "TBD",
                         time: dt ? dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : "TBD",
-                        address: b.customer?.address || "No address provided",
+                        address: b.serviceAddress || b.customer?.address || "No address provided",
                         phone: b.provider?.contactNumber || "No phone provided",
                         status: b.status === 'PENDING' || b.status === 'APPROVED' ? 'Upcoming' :
                             b.status === 'COMPLETED' ? 'Completed' :
                                 b.status === 'REJECTED' || b.status === 'CANCELLED' ? 'Cancelled' : b.status,
-                        amount: b.priceEstimate || 0,
+                        amount: b.finalPrice || b.priceEstimate || 0,
                         canRate: b.status === 'COMPLETED' && !(b.isReviewed || b.reviewed),
                         isReviewed: !!(b.isReviewed || b.reviewed),
                         otp: b.completionOtp || null,
@@ -174,10 +179,19 @@ export default function BookingsPage() {
                             <div key={booking.id} className="bg-white rounded-lg p-3 md:p-4 shadow-sm">
                                 <div className="flex items-start justify-between">
                                     <div className="flex items-start space-x-3">
-                                        <Image src={booking.providerImage} alt={booking.provider} width={40} height={40} className="w-10 h-10 rounded-full object-cover" />
+                                        {booking.providerImage ? (
+                                            <img src={booking.providerImage} alt={booking.provider} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+                                        ) : (
+                                            <div className="w-10 h-10 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                                                {booking.provider?.charAt(0) || "P"}
+                                            </div>
+                                        )}
                                         <div>
                                             <h3 className="text-sm font-semibold text-gray-900">{booking.service}</h3>
                                             <p className="text-xs text-gray-500">{booking.provider}</p>
+                                            {booking.providerBusinessName && (
+                                                <p className="text-[11px] text-gray-400">{booking.providerBusinessName}</p>
+                                            )}
                                             <div className="flex flex-wrap gap-2 mt-2 text-xs text-gray-500">
                                                 <span className="flex items-center"><Calendar className="w-3 h-3 mr-1" />{booking.date}</span>
                                                 <span className="flex items-center"><Clock className="w-3 h-3 mr-1" />{booking.time}</span>
@@ -185,7 +199,7 @@ export default function BookingsPage() {
                                             <p className="flex items-center mt-1 text-xs text-gray-500">
                                                 <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />{booking.address}
                                             </p>
-                                            {booking.status === "Upcoming" && booking.phone && (
+                                            {booking.status === "Upcoming" && booking.phone && booking.phone !== "No phone provided" && (
                                                 <p className="flex items-center mt-1 text-xs font-semibold text-primary-600">
                                                     <Phone className="w-3 h-3 mr-1 flex-shrink-0" /> Provider: {booking.phone}
                                                 </p>

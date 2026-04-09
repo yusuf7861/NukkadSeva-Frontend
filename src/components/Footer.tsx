@@ -48,6 +48,17 @@ export default function Footer() {
                         </ul>
                     </div>
 
+                    {/* Support & Legal */}
+                    <div>
+                        <h4 className="text-sm font-semibold text-white mb-3">Support & Legal</h4>
+                        <ul className="space-y-2">
+                            <li><Link href="/support" className="text-sm hover:text-primary-400 transition-colors">Help Center</Link></li>
+                            <li><Link href="/support/disputes" className="text-sm hover:text-primary-400 transition-colors">Dispute Resolution</Link></li>
+                            <li><Link href="/legal/terms" className="text-sm hover:text-primary-400 transition-colors">Terms of Service</Link></li>
+                            <li><Link href="/legal/privacy" className="text-sm hover:text-primary-400 transition-colors">Privacy Policy</Link></li>
+                        </ul>
+                    </div>
+
                     {/* Contact */}
                     <div>
                         <h4 className="text-sm font-semibold text-white mb-3">Contact</h4>
@@ -73,8 +84,8 @@ export default function Footer() {
                 <div className="flex flex-col md:flex-row items-center justify-between text-xs text-gray-500">
                     <p>&copy; {new Date().getFullYear()} NukkadSeva. All rights reserved.</p>
                     <div className="flex space-x-4 mt-3 md:mt-0">
-                        <a href="#" className="hover:text-gray-300">Privacy Policy</a>
-                        <a href="#" className="hover:text-gray-300">Terms of Service</a>
+                        <Link href="/legal/privacy" className="hover:text-gray-300">Privacy Policy</Link>
+                        <Link href="/legal/terms" className="hover:text-gray-300">Terms of Service</Link>
                     </div>
                 </div>
             </div>

@@ -12,8 +12,10 @@ export function middleware(request: NextRequest) {
 
     const token = request.cookies.get('access_token')?.value;
 
+    const isGeneralPublicPath = path === '/' || path.startsWith('/providers') || path.startsWith('/support') || path.startsWith('/legal');
+
     // Redirect unauthenticated users away from protected routes
-    if (!token && !isPublicPath && !isPublicProviderPath && path !== '/' && !path.startsWith('/providers')) {
+    if (!token && !isPublicPath && !isPublicProviderPath && !isGeneralPublicPath) {
         return NextResponse.redirect(new URL('/login', request.url));
     }
 
