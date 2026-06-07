@@ -84,6 +84,17 @@ export default function BookingsPage() {
                 // Map the backend BookingResponseDto to the frontend BookingType
                 const mappedBookings: BookingType[] = response.data.map((b: any) => {
                     const dt = b.bookingDateTime ? new Date(b.bookingDateTime) : null;
+                    
+                    let extractedAddress = "No address provided";
+                    if (b.serviceAddress) {
+                        extractedAddress = typeof b.serviceAddress === 'string' ? b.serviceAddress : (b.serviceAddress.fullAddress || b.serviceAddress.address || "No address provided");
+                    } else if (b.address) {
+                        extractedAddress = typeof b.address === 'string' ? b.address : (b.address.fullAddress || b.address.address || "No address provided");
+                    } else if (b.customer) {
+                        if (b.customer.fullAddress) extractedAddress = b.customer.fullAddress;
+                        else if (b.customer.address) extractedAddress = typeof b.customer.address === 'string' ? b.customer.address : (b.customer.address.fullAddress || "No address provided");
+                    }
+
                     return {
                         id: b.id,
                         service: b.serviceType,
@@ -94,7 +105,7 @@ export default function BookingsPage() {
                             : "",
                         date: dt ? dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "TBD",
                         time: dt ? dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : "TBD",
-                        address: b.serviceAddress || b.customer?.address || "No address provided",
+                        address: extractedAddress,
                         phone: b.provider?.contactNumber || "No phone provided",
                         status: b.status === 'PENDING' || b.status === 'APPROVED' ? 'Upcoming' :
                             b.status === 'COMPLETED' ? 'Completed' :
