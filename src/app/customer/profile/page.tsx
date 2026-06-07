@@ -290,9 +290,7 @@ export default function CustomerProfilePage() {
                                         {profile?.name || "—"}
                                     </h2>
                                     <p className="text-xs text-gray-500 truncate max-w-[160px]">{profile?.email}</p>
-                                    <span className="mt-2 inline-flex items-center gap-1 px-2.5 py-0.5 bg-green-50 text-green-700 text-xs font-semibold rounded-full border border-green-200">
-                                        <CheckCircle2 className="w-3 h-3" /> Verified
-                                    </span>
+{/* TODO: show verification status when the backend exposes it */}
                                 </div>
                             </div>
 
