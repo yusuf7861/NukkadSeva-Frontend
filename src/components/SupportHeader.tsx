@@ -56,9 +56,10 @@ export default function SupportHeader() {
                         
                         <div className="flex items-center space-x-3">
                             {isAuthenticated && user ? (
-                                <Link
-                                    href={user?.role === "ADMIN" ? "/admin/dashboard" : user?.role === "SERVICE_PROVIDER" ? "/provider/dashboard" : "/customer/dashboard"}
-                                    className="flex items-center gap-2 p-1 pl-2 pr-4 bg-gray-100 hover:bg-gray-200 rounded-full transition-all"
+<Link
+    href={user?.role === "ADMIN" ? "/admin/dashboard" : user?.role === "SERVICE_PROVIDER" || user?.role === "PROVIDER" ? "/provider/dashboard" : "/customer/dashboard"}
+    className="flex items-center gap-2 p-1 pl-2 pr-4 bg-gray-100 hover:bg-gray-200 rounded-full transition-all"
+>
                                 >
                                     <img
                                         src={user.avatar || "https://randomuser.me/api/portraits/men/1.jpg"}
