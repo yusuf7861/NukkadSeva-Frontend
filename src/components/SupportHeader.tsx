@@ -12,9 +12,10 @@ export default function SupportHeader() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const pathname = usePathname();
 
-    const isActive = (path: string) => {
-        return pathname?.startsWith(path) ? "text-primary-600 font-bold border-b-2 border-primary-600" : "text-gray-600 hover:text-primary-600 font-medium";
-    };
+const isActive = (path: string) => {
+    const active = pathname === path || (path !== "/support" && pathname?.startsWith(path));
+    return active ? "text-primary-600 font-bold border-b-2 border-primary-600" : "text-gray-600 hover:text-primary-600 font-medium";
+};
 
     return (
         <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-200">
