@@ -98,6 +98,15 @@ export interface DashboardProviderDto {
     bio: string;
     availability: string;
     mobileNumber: string;
+    city?: string;
+    state?: string;
+    averageRating?: number;
+    reviewCount?: number;
+    isVerified?: boolean;
+    jobsCompleted?: number;
+    responseTimeMinutes?: number;
+    serviceGuarantees?: boolean;
+    memberSince?: string;
 }
 
 export enum ServiceType {

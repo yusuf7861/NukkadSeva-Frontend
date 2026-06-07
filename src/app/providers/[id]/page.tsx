@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
-import { DashboardProviderDto, BookingRequest, ServiceType, PaymentMethod } from "@/types/backend";
+import { DashboardProviderDto, BookingRequest, ServiceType, PaymentMethod, ReviewResponseDto } from "@/types/backend";
 import { Star, MapPin, Phone, Clock, Shield, ChevronLeft, CheckCircle, MessageCircle, CreditCard, SearchX, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
@@ -18,6 +18,7 @@ export default function ProviderDetailPage({ params }: { params: { id: string } 
     const { user } = useAuth();
     const [provider, setProvider] = useState<DashboardProviderDto | null>(null);
     const [services, setServices] = useState<any[]>([]);
+    const [reviews, setReviews] = useState<ReviewResponseDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedService, setSelectedService] = useState<{ id?: number, name: string, price: number, type: ServiceType, durationMinutes?: number } | null>(null);
     const [selectedDate, setSelectedDate] = useState("");
@@ -73,6 +74,14 @@ export default function ProviderDetailPage({ params }: { params: { id: string } 
             } else {
                 setServices([]);
                 setSelectedService(null);
+            }
+
+            // Fetch reviews
+            try {
+                const reviewsResponse = await api.get<ReviewResponseDto[]>(`/public/providers/${params.id}/reviews`);
+                setReviews(reviewsResponse.data || []);
+            } catch (err) {
+                console.error("Failed to fetch reviews", err);
             }
         } catch (error) {
             console.error("Failed to fetch provider details", error);
@@ -186,15 +195,52 @@ export default function ProviderDetailPage({ params }: { params: { id: string } 
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-1">
                                         <h1 className="text-lg font-bold text-gray-900">{provider.businessName || provider.fullName}</h1>
-                                        <span className="bg-green-100 text-green-600 text-xs px-2 py-0.5 rounded-full flex items-center"><Shield className="w-3 h-3 mr-1" />Verified</span>
+                                        {provider.isVerified && (
+                                            <span className="bg-green-100 text-green-600 text-xs px-2 py-0.5 rounded-full flex items-center"><Shield className="w-3 h-3 mr-1" />Verified</span>
+                                        )}
                                     </div>
                                     <p className="text-sm text-gray-600 mb-2">{provider.serviceCategory}</p>
                                     <div className="flex flex-wrap gap-3 text-xs text-gray-600">
-                                        <span className="flex items-center"><Star className="w-3 h-3 text-yellow-400 fill-yellow-400 mr-1" />4.8 (120 reviews)</span>
+                                        <span className="flex items-center">
+                                            <Star className="w-3 h-3 text-yellow-400 fill-yellow-400 mr-1" />
+                                            {provider.averageRating ? provider.averageRating.toFixed(1) : "New"} ({provider.reviewCount || 0} reviews)
+                                        </span>
                                         <span className="flex items-center"><Clock className="w-3 h-3 mr-1" />{provider.experience} Yrs Exp.</span>
                                     </div>
-                                    <p className="flex items-center mt-2 text-xs text-gray-500"><MapPin className="w-3 h-3 mr-1" />{provider.serviceArea}</p>
+                                    <p className="flex items-center mt-2 text-xs text-gray-500">
+                                        <MapPin className="w-3 h-3 mr-1" />
+                                        {provider.city && provider.state ? `${provider.city}, ${provider.state}` : provider.serviceArea}
+                                    </p>
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* Trust & Stats */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div className="flex flex-col p-3 bg-white shadow-sm border border-gray-100 rounded-lg text-center">
+                                <span className="text-lg font-bold text-gray-900">{provider.jobsCompleted || 0}</span>
+                                <span className="text-xs text-gray-500">Jobs Done</span>
+                            </div>
+                            <div className="flex flex-col p-3 bg-white shadow-sm border border-gray-100 rounded-lg text-center">
+                                <span className="text-lg font-bold text-gray-900">{provider.responseTimeMinutes ? `${provider.responseTimeMinutes}m` : 'N/A'}</span>
+                                <span className="text-xs text-gray-500">Avg Response</span>
+                            </div>
+                            <div className="flex flex-col p-3 bg-white shadow-sm border border-gray-100 rounded-lg text-center">
+                                <span className="text-lg font-bold text-gray-900">{provider.memberSince ? new Date(provider.memberSince).getFullYear() : 'New'}</span>
+                                <span className="text-xs text-gray-500">Member Since</span>
+                            </div>
+                            <div className="flex flex-col p-3 bg-white shadow-sm border border-gray-100 rounded-lg text-center justify-center items-center">
+                                {provider.serviceGuarantees ? (
+                                    <>
+                                        <span className="text-lg font-bold text-green-600 flex justify-center"><CheckCircle className="w-5 h-5"/></span>
+                                        <span className="text-xs text-gray-500 mt-1">Guaranteed</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="text-lg font-bold text-gray-400 flex justify-center"><Shield className="w-5 h-5"/></span>
+                                        <span className="text-xs text-gray-500 mt-1">Standard</span>
+                                    </>
+                                )}
                             </div>
                         </div>
 
@@ -219,6 +265,30 @@ export default function ProviderDetailPage({ params }: { params: { id: string } 
                                 )) : (
                                     <div className="p-4 text-center text-sm text-gray-500 border border-gray-200 border-dashed rounded-lg">
                                         This provider currently has no active services listed.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Reviews */}
+                        <div className="bg-white rounded-lg p-4 shadow-sm">
+                            <h2 className="text-sm font-semibold text-gray-900 mb-3">Customer Reviews</h2>
+                            <div className="space-y-4">
+                                {reviews.length > 0 ? reviews.map((r) => (
+                                    <div key={r.id} className="border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <p className="text-sm font-medium text-gray-900">{r.customerName}</p>
+                                            <span className="flex items-center text-xs text-gray-600">
+                                                <Star className="w-3 h-3 text-yellow-400 fill-yellow-400 mr-1" />
+                                                {r.rating}
+                                            </span>
+                                        </div>
+                                        <p className="text-sm text-gray-600">{r.comment}</p>
+                                        <p className="text-xs text-gray-400 mt-1">{new Date(r.createdAt).toLocaleDateString()}</p>
+                                    </div>
+                                )) : (
+                                    <div className="p-4 text-center text-sm text-gray-500 border border-gray-200 border-dashed rounded-lg">
+                                        No reviews yet.
                                     </div>
                                 )}
                             </div>

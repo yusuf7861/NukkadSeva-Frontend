@@ -94,11 +94,19 @@ export default function Header() {
                                         aria-controls="profile-menu"
                                         className="flex items-center space-x-2 px-2 py-1.5 rounded-xl hover:bg-gray-100/80 border border-transparent hover:border-gray-200/50 transition-all focus:outline-none focus:ring-2 focus:ring-primary-500/20 active:scale-95"
                                     >
-                                        <img
-                                            src={user.avatar || "https://randomuser.me/api/portraits/men/1.jpg"}
-                                            alt={user.name}
-                                            className="w-9 h-9 rounded-full object-cover ring-2 ring-primary-100 shadow-sm"
-                                        />
+                                        {user.avatar ? (
+                                            <img
+                                                src={user.avatar}
+                                                alt={user.name || "User"}
+                                                className="w-9 h-9 rounded-full object-cover ring-2 ring-primary-100 shadow-sm"
+                                            />
+                                        ) : (
+                                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center ring-2 ring-primary-100 shadow-sm">
+                                                <span className="text-primary-700 font-bold text-xs">
+                                                    {user.name ? user.name.charAt(0).toUpperCase() : <User className="w-4 h-4 text-primary-600" />}
+                                                </span>
+                                            </div>
+                                        )}
                                         <div className="flex flex-col items-start hidden lg:flex">
                                             <span className="text-sm font-bold text-gray-800 leading-none">{user.name?.split(" ")[0]}</span>
                                             <span className="text-[10px] font-semibold text-primary-600 uppercase tracking-wider mt-1">{user.role.replace('_', ' ')}</span>
@@ -244,11 +252,19 @@ export default function Header() {
                                 {isAuthenticated && user ? (
                                     <div className="flex flex-col gap-2">
                                         <div className="px-4 py-3 flex items-center gap-3 mb-2 bg-gray-50 rounded-xl">
-                                            <img
-                                                src={user.avatar || "https://randomuser.me/api/portraits/men/1.jpg"}
-                                                alt={user.name}
-                                                className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm"
-                                            />
+                                            {user.avatar ? (
+                                                <img
+                                                    src={user.avatar}
+                                                    alt={user.name || "User"}
+                                                    className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm"
+                                                />
+                                            ) : (
+                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center ring-2 ring-white shadow-sm">
+                                                    <span className="text-primary-700 font-bold text-sm">
+                                                        {user.name ? user.name.charAt(0).toUpperCase() : <User className="w-5 h-5 text-primary-600" />}
+                                                    </span>
+                                                </div>
+                                            )}
                                             <div>
                                                 <p className="text-sm font-bold text-gray-900 leading-tight">{user.name}</p>
                                                 <p className="text-xs font-semibold text-primary-600 uppercase mt-0.5">{user.role.replace('_', ' ')}</p>

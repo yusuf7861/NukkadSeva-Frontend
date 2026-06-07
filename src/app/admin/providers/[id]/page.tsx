@@ -37,6 +37,11 @@ interface ProviderDetail {
     agreeToBgCheck: boolean;
     isEmailVerified: boolean;
     isApproved: boolean;
+    isVerified?: boolean;
+    jobsCompleted?: number;
+    responseTimeMinutes?: number;
+    serviceGuarantees?: boolean;
+    memberSince?: string;
     status: string;
     createdAt: string;
     rejectionReason: string;
@@ -189,6 +194,9 @@ export default function ProviderDetailPage() {
                             <InfoItem icon={Briefcase} label="Service Category" value={provider.serviceCategory} />
                             <InfoItem icon={Award} label="Experience" value={provider.experience ? `${provider.experience} years` : undefined} />
                             <InfoItem icon={Contact} label="GSTIN" value={provider.gstin} />
+                            <InfoItem icon={CheckCircle} label="Jobs Completed" value={provider.jobsCompleted?.toString() || '0'} />
+                            <InfoItem icon={Clock} label="Avg Response" value={provider.responseTimeMinutes ? `${provider.responseTimeMinutes} mins` : undefined} />
+                            <InfoItem icon={Shield} label="Guarantees" value={provider.serviceGuarantees ? 'Yes' : 'No'} />
                         </div>
                         {provider.bio && (
                             <div className="mt-4 p-4 bg-gray-50 rounded-xl">
